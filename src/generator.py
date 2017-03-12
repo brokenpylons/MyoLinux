@@ -1,3 +1,7 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
 import xml.etree.ElementTree as ET
 import textwrap
 from io import StringIO
@@ -28,6 +32,12 @@ type_mapping = {
     'bd_addr': 'uint8_t {}[6]',
     'uint8array': 'uint8_t {}[N]'
 }
+
+f.write('''\
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */\n
+''')
 
 f.write('#pragma once\n')
 f.write('#ifndef BLEAPI_H\n')
