@@ -8,7 +8,8 @@ project(MyoLinux)
 set(HEADERS
     src/buffer.h
     src/serial.h
-    src/bled112.h)
+    src/bled112.h
+    src/device.h)
 
 set(SRC
    src/buffer.cpp
@@ -16,6 +17,7 @@ set(SRC
    src/bleapi.xml
    src/bleapi.h
    src/serial.cpp
+   src/device.cpp
    src/main.cpp
    ${HEADERS})
 
