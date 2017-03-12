@@ -9,13 +9,15 @@ set(HEADERS
     src/buffer.h
     src/serial.h
     src/bled112.h
+    src/bleapi.h
+    src/myohw.h
     src/device.h)
 
 set(SRC
    src/buffer.cpp
    src/generator.py
    src/bleapi.xml
-   src/bleapi.h
+
    src/serial.cpp
    src/device.cpp
    src/main.cpp
