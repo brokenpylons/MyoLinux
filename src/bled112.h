@@ -11,10 +11,16 @@
 #include <vector>
 
 template <typename T>
+Header getHeader()
+{
+    return Header{0, 0, 0, sizeof(T), T::cls, T::cmd};
+}
+
+template <typename T>
 Buffer pack(T payload)
 {
     Command<T> cmd = {
-        getHeader(&payload),
+        getHeader<T>(),
         payload
     };
 

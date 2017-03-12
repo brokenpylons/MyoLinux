@@ -47,14 +47,19 @@ def generate_file_header(f):
 
 
 def generate_file_footer(f):
-    f.write('#endif // BLEAPI_H\n')
+    f.write('#endif // BLEAPI_H')
 
 
-def generate_struct(f, params, suffix='', variable_size=False):
+def generate_struct(f, cls_index, cmd_index, params, suffix='', variable_size=False):
+    struct_name = cls_name.title() + cmd_name.title().replace('_', '')
+
     if variable_size:
         f.write(f'template <int N>\n')
 
     f.write(f'struct PACKED {struct_name}{suffix} {{\n')
+    f.write(f'    static constexpr uint8_t cls = {cls_index};\n');
+    f.write(f'    static constexpr uint8_t cmd = {cmd_index};\n');
+
     for param in params:
         param_name = param.attrib['name']
         param_type = param.attrib['type']
@@ -80,7 +85,7 @@ if __name__ == '__main__':
             uint8_t length;
             uint8_t cls;
             uint8_t cmd;
-        };
+        };\n
         '''))
 
     for cls in root.findall("class"):
@@ -90,42 +95,20 @@ if __name__ == '__main__':
         for cmd in cls.findall('command'):
             cmd_index = cmd.attrib['index']
             cmd_name = cmd.attrib['name']
-            struct_name = cls_name.title() + cmd_name.title().replace('_', '')
 
-            variable_size = False
-            if cmd.findall(".//param[@type='uint8array']"):
-                variable_size = True
+            generate_struct(f, cls_index, cmd_index, cmd.findall("params/param"),
+                            variable_size=cmd.findall(".//param[@type='uint8array']"))
 
-            generate_struct(f, cmd.findall("params/param"), variable_size=variable_size)
-            generate_struct(f, cmd.findall("returns/param"), suffix="Response",
+            generate_struct(f, cls_index, cmd_index, cmd.findall("returns/param"), suffix="Response",
                             variable_size=cmd.findall(".//returns/param[@type='uint8array']"))
 
-            if variable_size:
-                f.write(textwrap.dedent(f'''\
-                    template <int N>
-                    Header getHeader({struct_name}<N> *)
-                    {{
-                        return Header{{0, 0, 0, sizeof({struct_name}<N>), {cls_index}, {cmd_index}}};
-                    }}\n
-                '''))
-            else:
-                f.write(textwrap.dedent(f'''\
-                    Header getHeader({struct_name} *)
-                    {{
-                        return Header{{0, 0, 0, sizeof({struct_name}), {cls_index}, {cmd_index}}};
-                    }}\n
-                '''))
 
         for cmd in cls.findall('event'):
             cmd_index = cmd.attrib['index']
             cmd_name = cmd.attrib['name']
-            struct_name = cls_name.title() + cmd_name.title().replace('_', '')
 
-            variable_size = False
-            if cmd.findall(".//param[@type='uint8array']"):
-                variable_size = True
-
-            generate_struct(f, cmd.findall("params/param"), suffix="Event", variable_size=variable_size)
+            generate_struct(f, cls_index, cmd_index, cmd.findall("params/param"), suffix="Event",
+                            variable_size=cmd.findall(".//param[@type='uint8array']"))
 
     f.write(textwrap.dedent('''\
         template <typename T>
