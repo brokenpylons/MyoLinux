@@ -10,15 +10,33 @@
 #include "buffer.h"
 
 #include <vector>
+#include <limits>
+#include <numeric>
+#include <iostream>
 
 template <typename T>
 Header getHeader()
 {
-    return Header{0, 0, 0, sizeof(T), T::cls, T::cmd};
+    using length_t = decltype(Header::length);
+    constexpr auto max = std::numeric_limits<length_t>::max();
+
+    length_t reminder = 0;
+    if (sizeof(T) > max) {
+        reminder = static_cast<length_t>(sizeof(T) - max);
+
+        // WARNING: If the size of the struct is larger than supported it fails silently.
+    }
+
+    return Header{reminder, 0, 0, static_cast<length_t>(sizeof(T) - reminder), T::cls, T::cmd};
+}
+
+inline std::size_t getLength(const Header &header)
+{
+    return header.length + header.length1;
 }
 
 template <typename T>
-Buffer pack(T payload)
+Buffer pack(const T &payload)
 {
     Command<T> cmd = {
         getHeader<T>(),

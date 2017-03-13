@@ -3,156 +3,74 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 #include "serial.h"
+#include "device.h"
 #include "bled112.h"
 
 #include <unistd.h>
 
+#include <cinttypes>
 #include <iostream>
 #include <iomanip>
 
-int main() {
-    Serial serial("/dev/ttyACM1", 9800);
+void print_header(Header header)
+{
+    std::cout << static_cast<int>(header.type) << std::endl;
+    std::cout << static_cast<int>(header.length1) << std::endl;
+    std::cout << static_cast<int>(header.length) << std::endl;
+    std::cout << static_cast<int>(header.cls) << std::endl;
+    std::cout << static_cast<int>(header.cmd) << std::endl;
+}
 
-    GapScanResponseEvent<0> x;
-    uint8_t handle;
+void print_address(uint8_t *address)
+{
+    std::ios state(NULL);
+    state.copyfmt(std::cout);
 
-    {
-        Buffer data = pack(GapDiscover{1});
-        serial.write(data);
-
-        auto data2 = serial.read(sizeof(Header));
-        auto hr = unpack<Header>(data2);
-
-        std::cout << (int)hr.type << std::endl;
-        std::cout << (int)hr.length1 << std::endl;
-        std::cout << (int)hr.length << std::endl;
-        std::cout << (int)hr.cls << std::endl;
-        std::cout << (int)hr.cmd << std::endl;
-
-        serial.read(2);
-    }
-    std::cout << std::endl;
-
-    {
-        auto data = serial.read(sizeof(Header));
-        auto hr = unpack<Header>(data);
-
-        std::cout << (int)hr.type << std::endl;
-        std::cout << (int)hr.length1 << std::endl;
-        std::cout << (int)hr.length << std::endl;
-        std::cout << (int)hr.cls << std::endl;
-        std::cout << (int)hr.cmd << std::endl;
-
-        auto data2 = serial.read(42);
-        x = unpack<GapScanResponseEvent<0>>(data2);
-
-        for (auto x : data2) {
-            std::cout << (int)x << " ";
+    for (int i = 0; i < 6; i++) {
+        std::cout << std::hex << std::setw(2) << (int)address[i];
+        if (i != 5) {
+            std::cout << ":";
         }
-        std::cout << std::endl;
     }
     std::cout << std::endl;
+    std::cout.copyfmt(state);
+}
 
-    {
-        Buffer data = pack(GapEndProcedure{});
-        serial.write(data);
+int main()
+{
+    Serial serial("/dev/ttyACM0", 9800);
+    Device dev(std::move(serial));
 
-        auto data2 = serial.read(sizeof(Header));
-        auto hr = unpack<Header>(data2);
+    std::array<uint8_t, 6> address;
+    uint8_t connection;
 
-        std::cout << (int)hr.type << std::endl;
-        std::cout << (int)hr.length1 << std::endl;
-        std::cout << (int)hr.length << std::endl;
-        std::cout << (int)hr.cls << std::endl;
-        std::cout << (int)hr.cmd << std::endl;
+    dev.write(GapDiscover{1});
+    dev.read<GapDiscoverResponse>();
 
-        serial.read(2);
-    }
+    auto resp = dev.read<GapScanResponseEvent<0>>();
+    print_header(resp.header);
+
+    std::copy(resp.payload.sender, resp.payload.sender + 6, std::begin(address));
+    print_address(resp.payload.sender);
     std::cout << std::endl;
 
-    {
-        GapConnectDirect con{{0}, 0, 6, 6, 64, 0};
-        std::copy(std::begin(x.sender), std::end(x.sender), std::begin(con.address));
+    dev.write(GapEndProcedure{});
+    dev.read<GapEndProcedureResponse>();
 
-        Buffer data = pack(con);
-        serial.write(data);
+    GapConnectDirect conn{{0}, 0, 6, 6, 64, 0};
+    std::copy(std::begin(address), std::end(address), std::begin(conn.address));
+    dev.write(conn);
+    auto resp2 = dev.read<GapConnectDirectResponse>();
+    connection = resp2.payload.connection_handle;
+    std::cout << "H" << (int)connection << std::endl;
 
-        auto data2 = serial.read(sizeof(Header));
-        auto hr = unpack<Header>(data2);
+    sleep(1);
+    auto resp3 = dev.read<ConnectionStatusEvent>();
+    std::cout << "Connected" << std::endl;
 
-        std::cout << (int)hr.type << std::endl;
-        std::cout << (int)hr.length1 << std::endl;
-        std::cout << (int)hr.length << std::endl;
-        std::cout << (int)hr.cls << std::endl;
-        std::cout << (int)hr.cmd << std::endl;
-
-        auto data3 = serial.read(3);
-        auto cc = unpack<GapConnectDirectResponse>(data3);
-        handle = cc.connection_handle;
-        std::cout << "H" << (int)handle << std::endl;
-
-        sleep(1);
-    }
-    std::cout << std::endl;
-
-    {
-         auto data2 = serial.read(sizeof(Header));
-         auto hr = unpack<Header>(data2);
-
-         std::cout << (int)hr.type << std::endl;
-         std::cout << (int)hr.length1 << std::endl;
-         std::cout << (int)hr.length << std::endl;
-         std::cout << (int)hr.cls << std::endl;
-         std::cout << (int)hr.cmd << std::endl;
-
-         auto data3 = serial.read(16);
-         auto stat = unpack<ConnectionStatusEvent>(data3);
-
-         std::cout << (int)stat.connection << std::endl;
-         std::cout << (int)stat.flags << std::endl;
-         std::cout << "L" << (int)stat.latency << std::endl;
-    }
-    std::cout << std::endl;
-
-    {
-
-        Buffer data = pack(AttclientReadByHandle{handle, 0x17});
-        serial.write(data);
-
-        auto data2 = serial.read(sizeof(Header));
-        auto hr = unpack<Header>(data2);
-
-        std::cout << (int)hr.type << std::endl;
-        std::cout << (int)hr.length1 << std::endl;
-        std::cout << (int)hr.length << std::endl;
-        std::cout << (int)hr.cls << std::endl;
-        std::cout << (int)hr.cmd << std::endl;
-
-        auto data3 = serial.read(3);
-    }
-    std::cout << std::endl;
-
-    {
-        auto data2 = serial.read(sizeof(Header));
-        auto hr = unpack<Header>(data2);
-
-        std::cout << (int)hr.type << std::endl;
-        std::cout << (int)hr.length1 << std::endl;
-        std::cout << (int)hr.length << std::endl;
-        std::cout << (int)hr.cls << std::endl;
-        std::cout << (int)hr.cmd << std::endl;
-
-         auto data3 = serial.read(13);
-         auto ss = unpack<AttclientAttributeValueEvent<9>>(data3);
-
-         for (int i = 0; i < 9; i++) {
-             std::cout << (int)ss.value[i] << " ";
-         }
-    }
-
-    {
-
-
-
+    // WARNING: Attribute handling functions don't work
+    auto value = dev.readAttribute(connection, 0x17);
+    for (int i = 0; i < value.size(); i++) {
+        std::cout << (int)value[i] << " ";
     }
 }

@@ -24,6 +24,8 @@ set(SRC
    ${HEADERS})
 
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --pedantic")
 
 add_executable(${PROJECT_NAME} ${SRC})
+set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 11)
 #target_link_libraries(${PROJECT_NAME})

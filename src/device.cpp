@@ -4,7 +4,31 @@
 
 #include "device.h"
 
-Device::Device()
-{
+#include <utility>
 
+Device::Device(Serial &&socket)
+    : socket(std::move(socket))
+{ }
+
+void Device::writeAttribute(const uint8_t handle, const Buffer &payload)
+{
+    //write.write(AttclientWriteCommand})
+
+}
+
+// TODO fix this
+Buffer Device::readAttribute(uint8_t connection, const uint8_t handle)
+{
+    write(AttclientReadByHandle{connection, handle});
+    read<AttclientReadByHandleResponse>();
+
+    const auto response = read<AttclientAttributeValueEvent<1>>();
+    const size_t size = getLength(response.header) - sizeof(AttclientAttributeValueEvent<1>) - 1;
+
+    Buffer buf(size);
+    for (int i = 0; i < size; i++) {
+        buf[i] = static_cast<char>(response.payload.value[i]);
+    }
+
+    return buf;
 }
