@@ -15,8 +15,8 @@
 void print_header(Header header)
 {
     std::cout << static_cast<int>(header.type) << std::endl;
-    std::cout << static_cast<int>(header.length1) << std::endl;
-    std::cout << static_cast<int>(header.length) << std::endl;
+    std::cout << static_cast<int>(header.tech) << std::endl;
+    std::cout << static_cast<int>(header.length()) << std::endl;
     std::cout << static_cast<int>(header.cls) << std::endl;
     std::cout << static_cast<int>(header.cmd) << std::endl;
 }

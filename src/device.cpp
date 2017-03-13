@@ -23,7 +23,7 @@ Buffer Device::readAttribute(uint8_t connection, const uint8_t handle)
     read<AttclientReadByHandleResponse>();
 
     const auto response = read<AttclientAttributeValueEvent<1>>();
-    const size_t size = getLength(response.header) - sizeof(AttclientAttributeValueEvent<1>) - 1;
+    const size_t size = response.header.length() - sizeof(AttclientAttributeValueEvent<1>) - 1;
 
     Buffer buf(size);
     for (int i = 0; i < size; i++) {

@@ -22,13 +22,13 @@ BGAPI packet structure (as of 2012-11-07):
 
 def type_mapping(type):
     return {
-        'int8': 'int8_t {}',
-        'uint8': 'uint8_t {}',
-        'int16': 'int16_t {}',
-        'uint16': 'uint16_t {}',
-        'uint32': 'uint32_t {}',
-        'bd_addr': 'uint8_t {}[6]',
-        'uint8array': 'uint8_t {}[N]'
+        'int8': 'std::int8_t {}',
+        'uint8': 'std::uint8_t {}',
+        'int16': 'std::int16_t {}',
+        'uint16': 'std::uint16_t {}',
+        'uint32': 'std::uint32_t {}',
+        'bd_addr': 'std::uint8_t {}[6]',
+        'uint8array': 'std::uint8_t {}[N]'
     }[type]
 
 
@@ -57,8 +57,8 @@ def generate_struct(f, cls_index, cmd_index, params, suffix='', variable_size=Fa
         f.write(f'template <int N>\n')
 
     f.write(f'struct PACKED {struct_name}{suffix} {{\n')
-    f.write(f'    static constexpr uint8_t cls = {cls_index};\n');
-    f.write(f'    static constexpr uint8_t cmd = {cmd_index};\n');
+    f.write(f'    static constexpr std::uint8_t cls = {cls_index};\n');
+    f.write(f'    static constexpr std::uint8_t cmd = {cmd_index};\n');
 
     for param in params:
         param_name = param.attrib['name']
@@ -79,12 +79,17 @@ if __name__ == '__main__':
 
     f.write(textwrap.dedent('''
         struct PACKED Header {
-            uint8_t length1 : 3;
-            uint8_t tech : 4;
-            uint8_t type : 1;
-            uint8_t length;
-            uint8_t cls;
-            uint8_t cmd;
+            std::uint8_t length1 : 3;
+            std::uint8_t tech : 4;
+            std::uint8_t type : 1;
+            std::uint8_t length0;
+            std::uint8_t cls;
+            std::uint8_t cmd;
+
+            std::size_t length() const
+            {
+                return static_cast<std::size_t>(length1) << 8 | length0;
+            }
         };\n
         '''))
 

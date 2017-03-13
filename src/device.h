@@ -14,8 +14,7 @@
 #include <stdexcept>
 
 // TODO: Split the read write and the att functionality
-class Device
-{
+class Device {
 public:
     Device(Serial &&socket);
 
@@ -56,13 +55,7 @@ Command<T> Device::read()
         throw std::runtime_error("Command index does not match the expected value");
     }
 
-    auto x = socket.read(getLength(header));
-    std::cout << "ss" << x.size() << std::endl;
-    for (int i = 0; i < x.size(); i++) {
-        std::cout << (int)x[i] << " ";
-    }
-    std::cout << std::endl;
-    auto payload = unpack<T>(x);
+    auto payload = unpack<T>(socket.read(header.length()));
 
     return Command<T>{header, payload};
 }
