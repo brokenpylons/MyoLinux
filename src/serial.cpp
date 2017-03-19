@@ -46,7 +46,7 @@ Serial::Serial(const std::string &device, const int baudrate)
     settings.c_cflag &= ~static_cast<unsigned int>(CSTOPB);
     settings.c_cflag &= ~static_cast<unsigned int>(CSIZE);
     settings.c_cflag |= CS8;
-    settings.c_cflag |=  CREAD | CLOCAL;
+    settings.c_cflag |= CREAD | CLOCAL;
 
     settings.c_cc[VMIN] = 0;
     settings.c_cc[VTIME] = 0;
