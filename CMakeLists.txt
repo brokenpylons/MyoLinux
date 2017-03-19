@@ -11,7 +11,8 @@ set(HEADERS
     src/bled112.h
     src/bleapi.h
     src/myohw.h
-    src/device.h)
+    src/device.h
+    src/bled112client.h)
 
 set(SRC
    src/buffer.cpp

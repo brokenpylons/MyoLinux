@@ -3,7 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 #include "serial.h"
-#include "device.h"
+#include "bled112client.h"
 #include "bled112.h"
 
 #include <unistd.h>
@@ -39,7 +39,7 @@ void print_address(uint8_t *address)
 int main()
 {
     Serial serial("/dev/ttyACM0", 9800);
-    Device dev(std::move(serial));
+    Bled112Client dev(std::move(serial));
 
     std::array<uint8_t, 6> address;
     uint8_t connection;
@@ -68,9 +68,22 @@ int main()
     auto resp3 = dev.read<ConnectionStatusEvent>();
     std::cout << "Connected" << std::endl;
 
+    dev.write(AttclientReadByHandle{connection, 0x17});
+    dev.read<AttclientReadByHandleResponse>();
+
+    dev.addEventHandler<AttclientAttributeValueEvent<11>>([](AttclientAttributeValueEvent<11> r) {
+        std::cout << "Hello" << std::endl;
+        for (int i = 0; i < 9; i++) {
+            //std::cout << (int)r.value[i] << " ";
+        }
+        std::cout << std::endl;
+    });
+
+    dev.listen();
+
     // WARNING: Attribute handling functions don't work
-    auto value = dev.readAttribute(connection, 0x17);
+    /*auto value = dev.readAttribute(connection, 0x17);
     for (int i = 0; i < value.size(); i++) {
         std::cout << (int)value[i] << " ";
-    }
+    }*/
 }
