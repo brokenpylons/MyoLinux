@@ -4,7 +4,6 @@
 
 import xml.etree.ElementTree as ET
 import textwrap
-from io import StringIO
 
 """
 BGAPI packet structure (as of 2012-11-07):
@@ -50,15 +49,18 @@ def generate_file_footer(f):
     f.write('#endif // BLEAPI_H')
 
 
+def camel_case(s):
+    return s.title().replace('_', '')
+
+
 def generate_struct(f, cls_index, cmd_index, params, suffix='', variable_size=False):
-    struct_name = cls_name.title() + cmd_name.title().replace('_', '')
+    struct_name = cls_name.title() + camel_case(cmd_name.title())
 
     if variable_size:
         f.write(f'template <int N>\n')
 
     f.write(f'struct PACKED {struct_name}{suffix} {{\n')
     f.write(f'    enum {{ cls = {cls_index}, cmd = {cmd_index} }};\n');
-    #f.write(f'    static const std::uint8_t ;\n');
 
     for param in params:
         param_name = param.attrib['name']
@@ -69,12 +71,11 @@ def generate_struct(f, cls_index, cmd_index, params, suffix='', variable_size=Fa
 
     f.write('};\n\n')
 
-
 if __name__ == '__main__':
     tree = ET.parse('bleapi.xml')
     root = tree.getroot()
 
-    f = StringIO()
+    f = open('bleapi.h', 'w')
     generate_file_header(f)
 
     f.write(textwrap.dedent('''
@@ -101,19 +102,33 @@ if __name__ == '__main__':
             cmd_index = cmd.attrib['index']
             cmd_name = cmd.attrib['name']
 
-            generate_struct(f, cls_index, cmd_index, cmd.findall("params/param"),
+            generate_struct(f, cls_index, cmd_index, cmd.findall('params/param'),
                             variable_size=cmd.findall(".//param[@type='uint8array']"))
 
-            generate_struct(f, cls_index, cmd_index, cmd.findall("returns/param"), suffix="Response",
+            generate_struct(f, cls_index, cmd_index, cmd.findall('returns/param'), suffix='Response',
                             variable_size=cmd.findall(".//returns/param[@type='uint8array']"))
-
 
         for cmd in cls.findall('event'):
             cmd_index = cmd.attrib['index']
             cmd_name = cmd.attrib['name']
 
-            generate_struct(f, cls_index, cmd_index, cmd.findall("params/param"), suffix="Event",
+            generate_struct(f, cls_index, cmd_index, cmd.findall('params/param'), suffix='Event',
                             variable_size=cmd.findall(".//param[@type='uint8array']"))
+
+        for enums in cls.findall('enums'):
+            enums_name = cls_name.title() + camel_case(enums.attrib['name']) + 'Enum'
+            f.write(f'enum class {enums_name} {{\n')
+
+            enum_statements = []
+            for enum in enums.findall('enum'):
+                enum_name = camel_case(enum.attrib['name'])
+                enum_value = enum.attrib['value']
+
+                enum_statements.append(f'    {enum_name} = {enum_value}')
+
+            f.write(',\n'.join(enum_statements))
+            f.write('\n};\n\n')
+
 
     f.write(textwrap.dedent('''\
         template <typename T>
@@ -124,5 +139,4 @@ if __name__ == '__main__':
         '''))
 
     generate_file_footer(f)
-
-    print(f.getvalue())
+    f.close()

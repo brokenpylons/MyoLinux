@@ -229,6 +229,15 @@ struct PACKED SystemNoLicenseKeyEvent {
     enum { cls = 0, cmd = 5 };
 };
 
+enum class SystemEndpointsEnum {
+    EndpointApi = 0,
+    EndpointTest = 1,
+    EndpointScript = 2,
+    EndpointUsb = 3,
+    EndpointUart0 = 4,
+    EndpointUart1 = 5
+};
+
 struct PACKED FlashPsDefrag {
     enum { cls = 1, cmd = 0 };
 };
@@ -404,6 +413,17 @@ struct PACKED AttributesStatusEvent {
     std::uint8_t flags;
 };
 
+enum class AttributesAttributeChangeReasonEnum {
+    AttributeChangeReasonWriteRequest = 0,
+    AttributeChangeReasonWriteCommand = 1,
+    AttributeChangeReasonWriteRequestUser = 2
+};
+
+enum class AttributesAttributeStatusFlagEnum {
+    AttributeStatusFlagNotify = 1,
+    AttributeStatusFlagIndicate = 2
+};
+
 struct PACKED ConnectionDisconnect {
     enum { cls = 3, cmd = 0 };
     std::uint8_t connection;
@@ -549,6 +569,13 @@ struct PACKED ConnectionDisconnectedEvent {
     enum { cls = 3, cmd = 4 };
     std::uint8_t connection;
     std::uint16_t reason;
+};
+
+enum class ConnectionConnstatusEnum {
+    Connected = 1,
+    Encrypted = 2,
+    Completed = 4,
+    ParametersChange = 8
 };
 
 template <int N>
@@ -768,6 +795,15 @@ struct PACKED AttclientReadMultipleResponseEvent {
     std::uint8_t handles[N];
 };
 
+enum class AttclientAttributeValueTypesEnum {
+    AttributeValueTypeRead = 0,
+    AttributeValueTypeNotify = 1,
+    AttributeValueTypeIndicate = 2,
+    AttributeValueTypeReadByType = 3,
+    AttributeValueTypeReadBlob = 4,
+    AttributeValueTypeIndicateRspReq = 5
+};
+
 struct PACKED SmEncryptStart {
     enum { cls = 5, cmd = 0 };
     std::uint8_t handle;
@@ -871,6 +907,24 @@ struct PACKED SmBondStatusEvent {
     std::uint8_t keysize;
     std::uint8_t mitm;
     std::uint8_t keys;
+};
+
+enum class SmBondingKeyEnum {
+    BondingKeyLtk = 0x01,
+    BondingKeyAddrPublic = 0x02,
+    BondingKeyAddrStatic = 0x04,
+    BondingKeyIrk = 0x08,
+    BondingKeyEdivrand = 0x10,
+    BondingKeyCsrk = 0x20,
+    BondingKeyMasterid = 0x40
+};
+
+enum class SmIoCapabilityEnum {
+    IoCapabilityDisplayonly = 0,
+    IoCapabilityDisplayyesno = 1,
+    IoCapabilityKeyboardonly = 2,
+    IoCapabilityNoinputnooutput = 3,
+    IoCapabilityKeyboarddisplay = 4
 };
 
 struct PACKED GapSetPrivacyFlags {
@@ -1017,6 +1071,58 @@ struct PACKED GapModeChangedEvent {
     enum { cls = 6, cmd = 1 };
     std::uint8_t discover;
     std::uint8_t connect;
+};
+
+enum class GapAddressTypeEnum {
+    AddressTypePublic = 0,
+    AddressTypeRandom = 1
+};
+
+enum class GapDiscoverableModeEnum {
+    NonDiscoverable = 0,
+    LimitedDiscoverable = 1,
+    GeneralDiscoverable = 2,
+    Broadcast = 3,
+    UserData = 4
+};
+
+enum class GapConnectableModeEnum {
+    NonConnectable = 0,
+    DirectedConnectable = 1,
+    UndirectedConnectable = 2,
+    ScannableConnectable = 3
+};
+
+enum class GapDiscoverModeEnum {
+    DiscoverLimited = 0,
+    DiscoverGeneric = 1,
+    DiscoverObservation = 2
+};
+
+enum class GapAdTypesEnum {
+    AdTypeNone = 0,
+    AdTypeFlags = 1,
+    AdTypeServices16BitMore = 2,
+    AdTypeServices16BitAll = 3,
+    AdTypeServices32BitMore = 4,
+    AdTypeServices32BitAll = 5,
+    AdTypeServices128BitMore = 6,
+    AdTypeServices128BitAll = 7,
+    AdTypeLocalnameShort = 8,
+    AdTypeLocalnameComplete = 9,
+    AdTypeTxpower = 10
+};
+
+enum class GapAdvertisingPolicyEnum {
+    AdvPolicyAll = 0,
+    AdvPolicyWhitelistScan = 1,
+    AdvPolicyWhitelistConnect = 2,
+    AdvPolicyWhitelistAll = 3
+};
+
+enum class GapScanPolicyEnum {
+    ScanPolicyAll = 0,
+    ScanPolicyWhitelist = 1
 };
 
 struct PACKED HardwareIoPortConfigIrq {
