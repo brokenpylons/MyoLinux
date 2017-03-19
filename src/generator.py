@@ -57,8 +57,8 @@ def generate_struct(f, cls_index, cmd_index, params, suffix='', variable_size=Fa
         f.write(f'template <int N>\n')
 
     f.write(f'struct PACKED {struct_name}{suffix} {{\n')
-    f.write(f'    static constexpr std::uint8_t cls = {cls_index};\n');
-    f.write(f'    static constexpr std::uint8_t cmd = {cmd_index};\n');
+    f.write(f'    enum {{ cls = {cls_index}, cmd = {cmd_index} }};\n');
+    #f.write(f'    static const std::uint8_t ;\n');
 
     for param in params:
         param_name = param.attrib['name']
