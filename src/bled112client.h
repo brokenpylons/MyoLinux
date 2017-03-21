@@ -1,7 +1,7 @@
 #ifndef BLED112CLIENT_H
 #define BLED112CLIENT_H
 
-#include "bled112.h"
+#include "bleapi.h"
 #include "serial.h"
 
 #include <functional>
@@ -62,7 +62,8 @@ private:
 template <typename T>
 void Bled112Client::write(const T &payload)
 {
-    socket.write(pack<T>(payload));
+    socket.write(pack(getHeader<T>()));
+    socket.write(pack(payload));
 }
 
 template <typename T>

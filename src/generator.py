@@ -91,7 +91,13 @@ if __name__ == '__main__':
             {
                 return static_cast<std::size_t>(length1) << 8 | length0;
             }
-        };\n
+        };
+
+        template <typename T>
+        Header getHeader()
+        {
+            return Header{sizeof(T) >> 8, 0, 0, sizeof(T) & 0xFF, T::cls, T::cmd};
+        }\n
         '''))
 
     for cls in root.findall("class"):

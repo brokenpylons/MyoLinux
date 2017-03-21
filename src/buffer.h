@@ -10,15 +10,18 @@
 
 using Buffer = std::vector<char>;
 
-/*class Buffer
+template <typename T>
+Buffer pack(const T &payload)
 {
-    using Container = std::vector<signed char>;
-public:
-    Buffer(const std::size_t);
-    Container::pointer data();
-    std::size_t size() const;
+    auto ptr = reinterpret_cast<const char *>(&payload);
+    return Buffer{ptr, ptr + sizeof(T)};
+}
 
-private:
-    Container bytes;
-};*/
+template <typename T>
+T unpack(Buffer buf)
+{
+    auto ptr = reinterpret_cast<T *>(buf.data());
+    return *ptr;
+}
+
 #endif // BUFFER_H

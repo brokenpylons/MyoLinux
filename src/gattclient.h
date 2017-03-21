@@ -24,13 +24,37 @@ public:
     void disconnect();
 
     //void writeAttribute(Buffer uuid, Buffer payload);
-    //void writeAttribute(std::uint8_t handle, Buffer payload);
+    template <int N>
+    void writeAttribute(const std::uint8_t, const Buffer &);
     //void readAttribute(Buffer uuid);
+
+    template <int N>
     Buffer readAttribute(const std::uint8_t);
 
 private:
     Bled112Client client;
     std::uint8_t connection;
 };
+
+template <int N>
+void GattClient::writeAttribute(const std::uint8_t handle, const Buffer &payload)
+{
+    AttclientAttributeWrite<N> command{connection, handle, {}};
+    std::copy(std::begin(payload), std::end(payload), std::begin(command.data));
+    client.write(command);
+
+    (void)client.read<AttclientAttributeWriteResponse>();
+}
+
+template <int N>
+Buffer GattClient::readAttribute(const std::uint8_t handle)
+{
+    client.write(AttclientReadByHandle{connection, handle});
+    client.read<AttclientReadByHandleResponse>();
+
+    const auto response = client.read<AttclientAttributeValueEvent<N>>();
+    // TODO: Check if everything works out...
+    return Buffer{std::begin(response.value), std::end(response.value)};
+}
 
 #endif // GATTCLIENT_H

@@ -23,6 +23,12 @@ struct PACKED Header {
     }
 };
 
+template <typename T>
+Header getHeader()
+{
+    return Header{sizeof(T) >> 8, 0, 0, sizeof(T) & 0xFF, T::cls, T::cmd};
+}
+
 struct PACKED SystemReset {
     enum { cls = 0, cmd = 0 };
     std::uint8_t boot_in_dfu;

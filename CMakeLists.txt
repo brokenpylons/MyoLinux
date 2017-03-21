@@ -8,14 +8,12 @@ project(MyoLinux)
 set(HEADERS
     src/buffer.h
     src/serial.h
-    src/bled112.h
     src/bleapi.h
     src/myohw.h
     src/bled112client.h
     src/gattclient.h)
 
 set(SRC
-   src/buffer.cpp
    src/generator.py
    src/bleapi.xml
    src/serial.cpp

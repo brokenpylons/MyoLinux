@@ -5,7 +5,7 @@
 #include "serial.h"
 #include "bled112client.h"
 #include "gattclient.h"
-#include "bled112.h"
+#include "bleapi.h"
 
 #include "myohw.h"
 
@@ -46,9 +46,10 @@ int main()
     Bled112Client dev(std::move(serial));
     GattClient cl(std::move(dev));
 
+    cl.discover();
     cl.connect(GattClient::Address{0x73, 0x83, 0x1b, 0x61, 0xb3, 0xe2});
 
-    auto data = cl.readAttribute(0x17);
+    auto data = cl.readAttribute<sizeof(myohw_fw_version_t) + 1>(0x17);
     data.erase(data.begin());
     auto mm = unpack<myohw_fw_version_t>(data);
 
@@ -56,4 +57,6 @@ int main()
     std::cout << mm.minor << std::endl;
     std::cout << mm.patch << std::endl;
     std::cout << mm.hardware_rev << std::endl;
+
+    cl.writeAttribute<4>(0x19, Buffer{0x3, 0x3, 0x1, 0x1});
 }
