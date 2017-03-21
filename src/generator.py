@@ -117,7 +117,8 @@ if __name__ == '__main__':
 
         for enums in cls.findall('enums'):
             enums_name = cls_name.title() + camel_case(enums.attrib['name']) + 'Enum'
-            f.write(f'enum class {enums_name} {{\n')
+            f.write(f'namespace {enums_name} {{\n')
+            f.write('enum {\n')
 
             enum_statements = []
             for enum in enums.findall('enum'):
@@ -127,7 +128,7 @@ if __name__ == '__main__':
                 enum_statements.append(f'    {enum_name} = {enum_value}')
 
             f.write(',\n'.join(enum_statements))
-            f.write('\n};\n\n')
+            f.write('\n};\n}\n\n')
 
 
     f.write(textwrap.dedent('''\
