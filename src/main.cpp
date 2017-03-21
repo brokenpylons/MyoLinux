@@ -4,22 +4,26 @@
 
 #include "serial.h"
 #include "bled112client.h"
+#include "gattclient.h"
 #include "bled112.h"
 
+#include "myohw.h"
+
 #include <unistd.h>
+#include <netinet/in.h>
 
 #include <cinttypes>
 #include <iostream>
 #include <iomanip>
 
-void print_header(Header header)
+/*void print_header(Header header)
 {
     std::cout << static_cast<int>(header.type) << std::endl;
     std::cout << static_cast<int>(header.tech) << std::endl;
     std::cout << static_cast<int>(header.length()) << std::endl;
     std::cout << static_cast<int>(header.cls) << std::endl;
     std::cout << static_cast<int>(header.cmd) << std::endl;
-}
+}*/
 
 void print_address(uint8_t *address)
 {
@@ -40,50 +44,16 @@ int main()
 {
     Serial serial("/dev/ttyACM0", 9800);
     Bled112Client dev(std::move(serial));
+    GattClient cl(std::move(dev));
 
-    std::array<uint8_t, 6> address;
-    uint8_t connection;
+    cl.connect(GattClient::Address{0x73, 0x83, 0x1b, 0x61, 0xb3, 0xe2});
 
-    dev.write(GapDiscover{1});
-    dev.read<GapDiscoverResponse>();
+    auto data = cl.readAttribute(0x17);
+    data.erase(data.begin());
+    auto mm = unpack<myohw_fw_version_t>(data);
 
-    auto resp = dev.read<GapScanResponseEvent<0>>();
-    print_header(resp.header);
-
-    std::copy(resp.payload.sender, resp.payload.sender + 6, std::begin(address));
-    print_address(resp.payload.sender);
-    std::cout << std::endl;
-
-    dev.write(GapEndProcedure{});
-    dev.read<GapEndProcedureResponse>();
-
-    GapConnectDirect conn{{0}, 0, 6, 6, 64, 0};
-    std::copy(std::begin(address), std::end(address), std::begin(conn.address));
-    dev.write(conn);
-    auto resp2 = dev.read<GapConnectDirectResponse>();
-    connection = resp2.payload.connection_handle;
-    std::cout << "H" << (int)connection << std::endl;
-
-    sleep(1);
-    auto resp3 = dev.read<ConnectionStatusEvent>();
-    std::cout << "Connected" << std::endl;
-
-    dev.write(AttclientReadByHandle{connection, 0x17});
-    dev.read<AttclientReadByHandleResponse>();
-
-    dev.addEventHandler<AttclientAttributeValueEvent<11>>([](AttclientAttributeValueEvent<11> r) {
-        std::cout << "Hello" << std::endl;
-        for (int i = 0; i < 9; i++) {
-            //std::cout << (int)r.value[i] << " ";
-        }
-        std::cout << std::endl;
-    });
-
-    dev.listen();
-
-    // WARNING: Attribute handling functions don't work
-    /*auto value = dev.readAttribute(connection, 0x17);
-    for (int i = 0; i < value.size(); i++) {
-        std::cout << (int)value[i] << " ";
-    }*/
+    std::cout << mm.major << std::endl;
+    std::cout << mm.minor << std::endl;
+    std::cout << mm.patch << std::endl;
+    std::cout << mm.hardware_rev << std::endl;
 }

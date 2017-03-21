@@ -11,17 +11,16 @@ set(HEADERS
     src/bled112.h
     src/bleapi.h
     src/myohw.h
-    src/device.h
-    src/bled112client.h)
+    src/bled112client.h
+    src/gattclient.h)
 
 set(SRC
    src/buffer.cpp
    src/generator.py
    src/bleapi.xml
-
    src/serial.cpp
-   src/device.cpp
    src/main.cpp
+   src/gattclient.cpp
    ${HEADERS})
 
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
