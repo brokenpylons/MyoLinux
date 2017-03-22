@@ -2,4 +2,4 @@
 
 [![License: MPL 2.0](https://img.shields.io/badge/License-MPL%202.0-brightgreen.svg)](https://opensource.org/licenses/MPL-2.0)
 
-C++ library for interfacing with the Myo bracelet using the bluetooth API
+C++ library for interfacing with the Myo armband on Linux
