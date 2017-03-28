@@ -11,25 +11,29 @@
 
 #include <cstdint>
 
+#include <map>
 #include <array>
 
 class GattClient {
 public:
     using Address = std::array<std::uint8_t, 6>;
+    using Characteristics = std::map<Buffer, std::uint16_t>;
 
     GattClient(Bled112Client &&);
 
     void discover();
+
+    Characteristics characteristics();
+
     void connect(const Address &);
     void disconnect();
+    void writeAttribute(const std::uint16_t, const Buffer &);
+
+    template <int N>
+    Buffer readAttribute(const std::uint16_t);
 
     //void writeAttribute(Buffer uuid, Buffer payload);
-    template <int N>
-    void writeAttribute(const std::uint8_t, const Buffer &);
-    //void readAttribute(Buffer uuid);
-
-    template <int N>
-    Buffer readAttribute(const std::uint8_t);
+    void readAttribute(Buffer uuid);
 
 private:
     Bled112Client client;
@@ -37,17 +41,7 @@ private:
 };
 
 template <int N>
-void GattClient::writeAttribute(const std::uint8_t handle, const Buffer &payload)
-{
-    AttclientAttributeWrite<N> command{connection, handle, {}};
-    std::copy(std::begin(payload), std::end(payload), std::begin(command.data));
-    client.write(command);
-
-    (void)client.read<AttclientAttributeWriteResponse>();
-}
-
-template <int N>
-Buffer GattClient::readAttribute(const std::uint8_t handle)
+Buffer GattClient::readAttribute(const std::uint16_t handle)
 {
     client.write(AttclientReadByHandle{connection, handle});
     client.read<AttclientReadByHandleResponse>();

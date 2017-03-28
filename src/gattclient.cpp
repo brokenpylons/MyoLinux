@@ -6,6 +6,7 @@
 
 #include <iostream>
 #include <iomanip>
+#include <functional>
 
 GattClient::GattClient(Bled112Client &&client)
     : client(std::move(client))
@@ -32,7 +33,7 @@ void GattClient::discover()
 
     client.write(GapDiscover{GapDiscoverModeEnum::DiscoverGeneric});
     client.read<GapDiscoverResponse>();
-    const auto resp = client.read<GapScanResponseEvent<0>>();
+    const auto resp = client.read<GapScanResponseEvent<32>>();
     print_address(resp.sender);
     std::copy(std::begin(resp.sender), std::end(resp.sender), std::begin(address));
 
@@ -51,11 +52,46 @@ void GattClient::connect(const Address &address)
     const auto response = client.read<GapConnectDirectResponse>();
     connection = response.connection_handle;
 
-    client.read<ConnectionStatusEvent>();
+    (void)client.read<ConnectionStatusEvent>();
     std::cout << "Connected" << std::endl;
 }
 
 void GattClient::disconnect()
 {
 
+}
+
+void GattClient::writeAttribute(const std::uint16_t handle, const Buffer &payload)
+{
+    client.write(AttclientAttributeWrite<0>{connection, handle, static_cast<std::uint8_t>(payload.size())}, payload);
+    (void)client.read<AttclientAttributeWriteResponse>();
+}
+
+auto GattClient::characteristics() -> Characteristics
+{
+    Characteristics chr;
+
+    client.write(AttclientFindInformation{connection, 0x0001, 0xFFFF});
+    (void)client.read<AttclientFindInformationResponse>();
+
+    bool running = true;
+    auto information_found = [&](const AttclientFindInformationFoundEvent<0> &command, const Buffer &uuid)
+    {
+        if (command.length != uuid.size()) {
+            throw std::runtime_error("UUID size does not match the expected value.");
+        }
+
+        chr[uuid] = command.chrhandle;
+    };
+
+    auto procedure_completed = [&running](AttclientProcedureCompletedEvent)
+    {
+        running = false;
+    };
+
+    while(running) {
+        client.read(information_found, procedure_completed);
+    }
+
+    return chr;
 }

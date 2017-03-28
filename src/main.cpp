@@ -16,6 +16,8 @@
 #include <iostream>
 #include <iomanip>
 
+#include <type_traits>
+
 /*void print_header(Header header)
 {
     std::cout << static_cast<int>(header.type) << std::endl;
@@ -46,11 +48,11 @@ int main()
     Bled112Client dev(std::move(serial));
     GattClient cl(std::move(dev));
 
-    cl.discover();
+    //cl.discover();
     cl.connect(GattClient::Address{0x73, 0x83, 0x1b, 0x61, 0xb3, 0xe2});
+    auto x = cl.characteristics();
 
-    auto data = cl.readAttribute<sizeof(myohw_fw_version_t) + 1>(0x17);
-    data.erase(data.begin());
+    auto data = cl.readAttribute<sizeof(myohw_fw_version_t)>(0x17);
     auto mm = unpack<myohw_fw_version_t>(data);
 
     std::cout << mm.major << std::endl;
@@ -58,5 +60,5 @@ int main()
     std::cout << mm.patch << std::endl;
     std::cout << mm.hardware_rev << std::endl;
 
-    cl.writeAttribute<4>(0x19, Buffer{0x3, 0x3, 0x1, 0x1});
+    cl.writeAttribute(0x19, Buffer{0x3, 0x1, 0x1});
 }

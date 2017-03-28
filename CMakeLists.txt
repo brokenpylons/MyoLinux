@@ -11,7 +11,8 @@ set(HEADERS
     src/bleapi.h
     src/myohw.h
     src/bled112client.h
-    src/gattclient.h)
+    src/gattclient.h
+    src/firstargument.h)
 
 set(SRC
    src/generator.py
