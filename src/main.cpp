@@ -52,7 +52,7 @@ int main()
     cl.connect(GattClient::Address{0x73, 0x83, 0x1b, 0x61, 0xb3, 0xe2});
     auto x = cl.characteristics();
 
-    auto data = cl.readAttribute<sizeof(myohw_fw_version_t)>(0x17);
+    auto data = cl.readAttribute(0x17);
     auto mm = unpack<myohw_fw_version_t>(data);
 
     std::cout << mm.major << std::endl;

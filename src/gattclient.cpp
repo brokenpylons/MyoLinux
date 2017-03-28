@@ -67,6 +67,27 @@ void GattClient::writeAttribute(const std::uint16_t handle, const Buffer &payloa
     (void)client.read<AttclientAttributeWriteResponse>();
 }
 
+Buffer GattClient::readAttribute(const std::uint16_t handle)
+{
+    client.write(AttclientReadByHandle{connection, handle});
+    client.read<AttclientReadByHandleResponse>();
+
+    Buffer buf;
+    const auto response = client.read<AttclientAttributeValueEvent<0>>(buf);
+    if (response.length != buf.size()) {
+        throw std::runtime_error("Data length does not match the expected value.");
+    }
+
+    return buf;
+}
+
+void GattClient::readAttribute(const DispatchTable &dispatch_table)
+{
+    client.read([&dispatch_table](AttclientAttributeValueEvent<0> event, const Buffer &buf) {
+        dispatch_table.at(event.atthandle)(buf);
+    });
+}
+
 auto GattClient::characteristics() -> Characteristics
 {
     Characteristics chr;
