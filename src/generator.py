@@ -52,7 +52,6 @@ def generate_file_footer(f):
 def camel_case(s):
     return s.title().replace('_', '')
 
-
 def generate_struct(f, cls_index, cmd_index, params, suffix='', variable_size=False):
     struct_name = cls_name.title() + camel_case(cmd_name.title())
 
@@ -62,14 +61,33 @@ def generate_struct(f, cls_index, cmd_index, params, suffix='', variable_size=Fa
     f.write(f'struct PACKED {struct_name}{suffix} {{\n')
     f.write(f'    enum {{ cls = {cls_index}, cmd = {cmd_index} }};\n');
 
+    length_sig = 'std::uint8_t length'
+
     for param in params:
         param_name = param.attrib['name']
         param_type = param.attrib['type']
         param_sig = type_mapping(param_type).format(param_name)
 
+        if param_type == 'uint8array':
+            f.write(f'    {length_sig};\n')
         f.write(f'    {param_sig};\n')
-
     f.write('};\n\n')
+
+    if variable_size:
+        f.write(f'template <>\n')
+        f.write(f'struct PACKED {struct_name}{suffix}<0> {{\n')
+        f.write(f'    enum {{ cls = {cls_index}, cmd = {cmd_index} }};\n');
+
+        for param in params:
+            param_name = param.attrib['name']
+            param_type = param.attrib['type']
+            param_sig = type_mapping(param_type).format(param_name)
+
+            if param_type == 'uint8array':
+                f.write(f'    {length_sig};\n')
+            else:
+                f.write(f'    {param_sig};\n')
+        f.write('};\n\n')
 
 if __name__ == '__main__':
     tree = ET.parse('bleapi.xml')
@@ -94,10 +112,27 @@ if __name__ == '__main__':
         };
 
         template <typename T>
-        Header getHeader()
+        Header getHeader(std::size_t data_size = 0)
         {
-            return Header{sizeof(T) >> 8, 0, 0, sizeof(T) & 0xFF, T::cls, T::cmd};
-        }\n
+            const auto size = data_size + sizeof(T);
+            return Header{static_cast<std::uint8_t>(size >> 8), 0, 0,
+                        static_cast<std::uint8_t>(size & 0xFF), T::cls, T::cmd};
+        }
+
+        template <typename T>
+        struct Partial {
+            enum { value = false };
+        };
+
+        template <template<int> class T, int N>
+        struct Partial<T<N>> {
+            enum { value = false };
+        };
+
+        template <template<int> class T>
+        struct Partial<T<0>> {
+            enum { value = true };
+        };\n
         '''))
 
     for cls in root.findall("class"):
@@ -109,7 +144,7 @@ if __name__ == '__main__':
             cmd_name = cmd.attrib['name']
 
             generate_struct(f, cls_index, cmd_index, cmd.findall('params/param'),
-                            variable_size=cmd.findall(".//param[@type='uint8array']"))
+                            variable_size=cmd.findall(".//params/param[@type='uint8array']"))
 
             generate_struct(f, cls_index, cmd_index, cmd.findall('returns/param'), suffix='Response',
                             variable_size=cmd.findall(".//returns/param[@type='uint8array']"))
@@ -135,15 +170,6 @@ if __name__ == '__main__':
 
             f.write(',\n'.join(enum_statements))
             f.write('\n};\n}\n\n')
-
-
-    f.write(textwrap.dedent('''\
-        template <typename T>
-        struct PACKED Command {
-            Header header;
-            T payload;
-        };\n
-        '''))
 
     generate_file_footer(f)
     f.close()

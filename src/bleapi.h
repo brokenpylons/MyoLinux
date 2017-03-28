@@ -24,10 +24,27 @@ struct PACKED Header {
 };
 
 template <typename T>
-Header getHeader()
+Header getHeader(std::size_t data_size = 0)
 {
-    return Header{sizeof(T) >> 8, 0, 0, sizeof(T) & 0xFF, T::cls, T::cmd};
+    const auto size = data_size + sizeof(T);
+    return Header{static_cast<std::uint8_t>(size >> 8), 0, 0,
+                static_cast<std::uint8_t>(size & 0xFF), T::cls, T::cmd};
 }
+
+template <typename T>
+struct Partial {
+    enum { value = false };
+};
+
+template <template<int> class T, int N>
+struct Partial<T<N>> {
+    enum { value = false };
+};
+
+template <template<int> class T>
+struct Partial<T<0>> {
+    enum { value = true };
+};
 
 struct PACKED SystemReset {
     enum { cls = 0, cmd = 0 };
@@ -99,7 +116,6 @@ struct PACKED SystemGetConnectionsResponse {
     std::uint8_t maxconn;
 };
 
-template <int N>
 struct PACKED SystemReadMemory {
     enum { cls = 0, cmd = 7 };
     std::uint32_t address;
@@ -110,7 +126,15 @@ template <int N>
 struct PACKED SystemReadMemoryResponse {
     enum { cls = 0, cmd = 7 };
     std::uint32_t address;
+    std::uint8_t length;
     std::uint8_t data[N];
+};
+
+template <>
+struct PACKED SystemReadMemoryResponse<0> {
+    enum { cls = 0, cmd = 7 };
+    std::uint32_t address;
+    std::uint8_t length;
 };
 
 struct PACKED SystemGetInfo {
@@ -132,7 +156,15 @@ template <int N>
 struct PACKED SystemEndpointTx {
     enum { cls = 0, cmd = 9 };
     std::uint8_t endpoint;
+    std::uint8_t length;
     std::uint8_t data[N];
+};
+
+template <>
+struct PACKED SystemEndpointTx<0> {
+    enum { cls = 0, cmd = 9 };
+    std::uint8_t endpoint;
+    std::uint8_t length;
 };
 
 struct PACKED SystemEndpointTxResponse {
@@ -170,7 +202,6 @@ struct PACKED SystemWhitelistClearResponse {
     enum { cls = 0, cmd = 12 };
 };
 
-template <int N>
 struct PACKED SystemEndpointRx {
     enum { cls = 0, cmd = 13 };
     std::uint8_t endpoint;
@@ -181,7 +212,15 @@ template <int N>
 struct PACKED SystemEndpointRxResponse {
     enum { cls = 0, cmd = 13 };
     std::uint16_t result;
+    std::uint8_t length;
     std::uint8_t data[N];
+};
+
+template <>
+struct PACKED SystemEndpointRxResponse<0> {
+    enum { cls = 0, cmd = 13 };
+    std::uint16_t result;
+    std::uint8_t length;
 };
 
 struct PACKED SystemEndpointSetWatermarks {
@@ -210,7 +249,14 @@ struct PACKED SystemBootEvent {
 template <int N>
 struct PACKED SystemDebugEvent {
     enum { cls = 0, cmd = 1 };
+    std::uint8_t length;
     std::uint8_t data[N];
+};
+
+template <>
+struct PACKED SystemDebugEvent<0> {
+    enum { cls = 0, cmd = 1 };
+    std::uint8_t length;
 };
 
 struct PACKED SystemEndpointWatermarkRxEvent {
@@ -274,7 +320,15 @@ template <int N>
 struct PACKED FlashPsSave {
     enum { cls = 1, cmd = 3 };
     std::uint16_t key;
+    std::uint8_t length;
     std::uint8_t value[N];
+};
+
+template <>
+struct PACKED FlashPsSave<0> {
+    enum { cls = 1, cmd = 3 };
+    std::uint16_t key;
+    std::uint8_t length;
 };
 
 struct PACKED FlashPsSaveResponse {
@@ -282,7 +336,6 @@ struct PACKED FlashPsSaveResponse {
     std::uint16_t result;
 };
 
-template <int N>
 struct PACKED FlashPsLoad {
     enum { cls = 1, cmd = 4 };
     std::uint16_t key;
@@ -292,7 +345,15 @@ template <int N>
 struct PACKED FlashPsLoadResponse {
     enum { cls = 1, cmd = 4 };
     std::uint16_t result;
+    std::uint8_t length;
     std::uint8_t value[N];
+};
+
+template <>
+struct PACKED FlashPsLoadResponse<0> {
+    enum { cls = 1, cmd = 4 };
+    std::uint16_t result;
+    std::uint8_t length;
 };
 
 struct PACKED FlashPsErase {
@@ -318,7 +379,15 @@ template <int N>
 struct PACKED FlashWriteWords {
     enum { cls = 1, cmd = 7 };
     std::uint16_t address;
+    std::uint8_t length;
     std::uint8_t words[N];
+};
+
+template <>
+struct PACKED FlashWriteWords<0> {
+    enum { cls = 1, cmd = 7 };
+    std::uint16_t address;
+    std::uint8_t length;
 };
 
 struct PACKED FlashWriteWordsResponse {
@@ -329,7 +398,15 @@ template <int N>
 struct PACKED FlashPsKeyEvent {
     enum { cls = 1, cmd = 0 };
     std::uint16_t key;
+    std::uint8_t length;
     std::uint8_t value[N];
+};
+
+template <>
+struct PACKED FlashPsKeyEvent<0> {
+    enum { cls = 1, cmd = 0 };
+    std::uint16_t key;
+    std::uint8_t length;
 };
 
 template <int N>
@@ -337,7 +414,16 @@ struct PACKED AttributesWrite {
     enum { cls = 2, cmd = 0 };
     std::uint16_t handle;
     std::uint8_t offset;
+    std::uint8_t length;
     std::uint8_t value[N];
+};
+
+template <>
+struct PACKED AttributesWrite<0> {
+    enum { cls = 2, cmd = 0 };
+    std::uint16_t handle;
+    std::uint8_t offset;
+    std::uint8_t length;
 };
 
 struct PACKED AttributesWriteResponse {
@@ -345,7 +431,6 @@ struct PACKED AttributesWriteResponse {
     std::uint16_t result;
 };
 
-template <int N>
 struct PACKED AttributesRead {
     enum { cls = 2, cmd = 1 };
     std::uint16_t handle;
@@ -358,10 +443,19 @@ struct PACKED AttributesReadResponse {
     std::uint16_t handle;
     std::uint16_t offset;
     std::uint16_t result;
+    std::uint8_t length;
     std::uint8_t value[N];
 };
 
-template <int N>
+template <>
+struct PACKED AttributesReadResponse<0> {
+    enum { cls = 2, cmd = 1 };
+    std::uint16_t handle;
+    std::uint16_t offset;
+    std::uint16_t result;
+    std::uint8_t length;
+};
+
 struct PACKED AttributesReadType {
     enum { cls = 2, cmd = 2 };
     std::uint16_t handle;
@@ -372,7 +466,16 @@ struct PACKED AttributesReadTypeResponse {
     enum { cls = 2, cmd = 2 };
     std::uint16_t handle;
     std::uint16_t result;
+    std::uint8_t length;
     std::uint8_t value[N];
+};
+
+template <>
+struct PACKED AttributesReadTypeResponse<0> {
+    enum { cls = 2, cmd = 2 };
+    std::uint16_t handle;
+    std::uint16_t result;
+    std::uint8_t length;
 };
 
 template <int N>
@@ -380,7 +483,16 @@ struct PACKED AttributesUserReadResponse {
     enum { cls = 2, cmd = 3 };
     std::uint8_t connection;
     std::uint8_t att_error;
+    std::uint8_t length;
     std::uint8_t value[N];
+};
+
+template <>
+struct PACKED AttributesUserReadResponse<0> {
+    enum { cls = 2, cmd = 3 };
+    std::uint8_t connection;
+    std::uint8_t att_error;
+    std::uint8_t length;
 };
 
 struct PACKED AttributesUserReadResponseResponse {
@@ -404,7 +516,18 @@ struct PACKED AttributesValueEvent {
     std::uint8_t reason;
     std::uint16_t handle;
     std::uint16_t offset;
+    std::uint8_t length;
     std::uint8_t value[N];
+};
+
+template <>
+struct PACKED AttributesValueEvent<0> {
+    enum { cls = 2, cmd = 0 };
+    std::uint8_t connection;
+    std::uint8_t reason;
+    std::uint16_t handle;
+    std::uint16_t offset;
+    std::uint8_t length;
 };
 
 struct PACKED AttributesUserReadRequestEvent {
@@ -484,7 +607,6 @@ struct PACKED ConnectionVersionUpdateResponse {
     std::uint16_t result;
 };
 
-template <int N>
 struct PACKED ConnectionChannelMapGet {
     enum { cls = 3, cmd = 4 };
     std::uint8_t connection;
@@ -494,14 +616,30 @@ template <int N>
 struct PACKED ConnectionChannelMapGetResponse {
     enum { cls = 3, cmd = 4 };
     std::uint8_t connection;
+    std::uint8_t length;
     std::uint8_t map[N];
+};
+
+template <>
+struct PACKED ConnectionChannelMapGetResponse<0> {
+    enum { cls = 3, cmd = 4 };
+    std::uint8_t connection;
+    std::uint8_t length;
 };
 
 template <int N>
 struct PACKED ConnectionChannelMapSet {
     enum { cls = 3, cmd = 5 };
     std::uint8_t connection;
+    std::uint8_t length;
     std::uint8_t map[N];
+};
+
+template <>
+struct PACKED ConnectionChannelMapSet<0> {
+    enum { cls = 3, cmd = 5 };
+    std::uint8_t connection;
+    std::uint8_t length;
 };
 
 struct PACKED ConnectionChannelMapSetResponse {
@@ -535,7 +673,15 @@ template <int N>
 struct PACKED ConnectionRawTx {
     enum { cls = 3, cmd = 8 };
     std::uint8_t connection;
+    std::uint8_t length;
     std::uint8_t data[N];
+};
+
+template <>
+struct PACKED ConnectionRawTx<0> {
+    enum { cls = 3, cmd = 8 };
+    std::uint8_t connection;
+    std::uint8_t length;
 };
 
 struct PACKED ConnectionRawTxResponse {
@@ -567,14 +713,30 @@ template <int N>
 struct PACKED ConnectionFeatureIndEvent {
     enum { cls = 3, cmd = 2 };
     std::uint8_t connection;
+    std::uint8_t length;
     std::uint8_t features[N];
+};
+
+template <>
+struct PACKED ConnectionFeatureIndEvent<0> {
+    enum { cls = 3, cmd = 2 };
+    std::uint8_t connection;
+    std::uint8_t length;
 };
 
 template <int N>
 struct PACKED ConnectionRawRxEvent {
     enum { cls = 3, cmd = 3 };
     std::uint8_t connection;
+    std::uint8_t length;
     std::uint8_t data[N];
+};
+
+template <>
+struct PACKED ConnectionRawRxEvent<0> {
+    enum { cls = 3, cmd = 3 };
+    std::uint8_t connection;
+    std::uint8_t length;
 };
 
 struct PACKED ConnectionDisconnectedEvent {
@@ -599,7 +761,18 @@ struct PACKED AttclientFindByTypeValue {
     std::uint16_t start;
     std::uint16_t end;
     std::uint16_t uuid;
+    std::uint8_t length;
     std::uint8_t value[N];
+};
+
+template <>
+struct PACKED AttclientFindByTypeValue<0> {
+    enum { cls = 4, cmd = 0 };
+    std::uint8_t connection;
+    std::uint16_t start;
+    std::uint16_t end;
+    std::uint16_t uuid;
+    std::uint8_t length;
 };
 
 struct PACKED AttclientFindByTypeValueResponse {
@@ -614,7 +787,17 @@ struct PACKED AttclientReadByGroupType {
     std::uint8_t connection;
     std::uint16_t start;
     std::uint16_t end;
+    std::uint8_t length;
     std::uint8_t uuid[N];
+};
+
+template <>
+struct PACKED AttclientReadByGroupType<0> {
+    enum { cls = 4, cmd = 1 };
+    std::uint8_t connection;
+    std::uint16_t start;
+    std::uint16_t end;
+    std::uint8_t length;
 };
 
 struct PACKED AttclientReadByGroupTypeResponse {
@@ -629,7 +812,17 @@ struct PACKED AttclientReadByType {
     std::uint8_t connection;
     std::uint16_t start;
     std::uint16_t end;
+    std::uint8_t length;
     std::uint8_t uuid[N];
+};
+
+template <>
+struct PACKED AttclientReadByType<0> {
+    enum { cls = 4, cmd = 2 };
+    std::uint8_t connection;
+    std::uint16_t start;
+    std::uint16_t end;
+    std::uint8_t length;
 };
 
 struct PACKED AttclientReadByTypeResponse {
@@ -668,7 +861,16 @@ struct PACKED AttclientAttributeWrite {
     enum { cls = 4, cmd = 5 };
     std::uint8_t connection;
     std::uint16_t atthandle;
+    std::uint8_t length;
     std::uint8_t data[N];
+};
+
+template <>
+struct PACKED AttclientAttributeWrite<0> {
+    enum { cls = 4, cmd = 5 };
+    std::uint8_t connection;
+    std::uint16_t atthandle;
+    std::uint8_t length;
 };
 
 struct PACKED AttclientAttributeWriteResponse {
@@ -682,7 +884,16 @@ struct PACKED AttclientWriteCommand {
     enum { cls = 4, cmd = 6 };
     std::uint8_t connection;
     std::uint16_t atthandle;
+    std::uint8_t length;
     std::uint8_t data[N];
+};
+
+template <>
+struct PACKED AttclientWriteCommand<0> {
+    enum { cls = 4, cmd = 6 };
+    std::uint8_t connection;
+    std::uint16_t atthandle;
+    std::uint8_t length;
 };
 
 struct PACKED AttclientWriteCommandResponse {
@@ -719,7 +930,17 @@ struct PACKED AttclientPrepareWrite {
     std::uint8_t connection;
     std::uint16_t atthandle;
     std::uint16_t offset;
+    std::uint8_t length;
     std::uint8_t data[N];
+};
+
+template <>
+struct PACKED AttclientPrepareWrite<0> {
+    enum { cls = 4, cmd = 9 };
+    std::uint8_t connection;
+    std::uint16_t atthandle;
+    std::uint16_t offset;
+    std::uint8_t length;
 };
 
 struct PACKED AttclientPrepareWriteResponse {
@@ -744,7 +965,15 @@ template <int N>
 struct PACKED AttclientReadMultiple {
     enum { cls = 4, cmd = 11 };
     std::uint8_t connection;
+    std::uint8_t length;
     std::uint8_t handles[N];
+};
+
+template <>
+struct PACKED AttclientReadMultiple<0> {
+    enum { cls = 4, cmd = 11 };
+    std::uint8_t connection;
+    std::uint8_t length;
 };
 
 struct PACKED AttclientReadMultipleResponse {
@@ -772,7 +1001,17 @@ struct PACKED AttclientGroupFoundEvent {
     std::uint8_t connection;
     std::uint16_t start;
     std::uint16_t end;
+    std::uint8_t length;
     std::uint8_t uuid[N];
+};
+
+template <>
+struct PACKED AttclientGroupFoundEvent<0> {
+    enum { cls = 4, cmd = 2 };
+    std::uint8_t connection;
+    std::uint16_t start;
+    std::uint16_t end;
+    std::uint8_t length;
 };
 
 template <int N>
@@ -782,7 +1021,18 @@ struct PACKED AttclientAttributeFoundEvent {
     std::uint16_t chrdecl;
     std::uint16_t value;
     std::uint8_t properties;
+    std::uint8_t length;
     std::uint8_t uuid[N];
+};
+
+template <>
+struct PACKED AttclientAttributeFoundEvent<0> {
+    enum { cls = 4, cmd = 3 };
+    std::uint8_t connection;
+    std::uint16_t chrdecl;
+    std::uint16_t value;
+    std::uint8_t properties;
+    std::uint8_t length;
 };
 
 template <int N>
@@ -790,7 +1040,16 @@ struct PACKED AttclientFindInformationFoundEvent {
     enum { cls = 4, cmd = 4 };
     std::uint8_t connection;
     std::uint16_t chrhandle;
+    std::uint8_t length;
     std::uint8_t uuid[N];
+};
+
+template <>
+struct PACKED AttclientFindInformationFoundEvent<0> {
+    enum { cls = 4, cmd = 4 };
+    std::uint8_t connection;
+    std::uint16_t chrhandle;
+    std::uint8_t length;
 };
 
 template <int N>
@@ -799,14 +1058,32 @@ struct PACKED AttclientAttributeValueEvent {
     std::uint8_t connection;
     std::uint16_t atthandle;
     std::uint8_t type;
+    std::uint8_t length;
     std::uint8_t value[N];
+};
+
+template <>
+struct PACKED AttclientAttributeValueEvent<0> {
+    enum { cls = 4, cmd = 5 };
+    std::uint8_t connection;
+    std::uint16_t atthandle;
+    std::uint8_t type;
+    std::uint8_t length;
 };
 
 template <int N>
 struct PACKED AttclientReadMultipleResponseEvent {
     enum { cls = 4, cmd = 6 };
     std::uint8_t connection;
+    std::uint8_t length;
     std::uint8_t handles[N];
+};
+
+template <>
+struct PACKED AttclientReadMultipleResponseEvent<0> {
+    enum { cls = 4, cmd = 6 };
+    std::uint8_t connection;
+    std::uint8_t length;
 };
 
 namespace AttclientAttributeValueTypesEnum {
@@ -885,7 +1162,14 @@ struct PACKED SmGetBondsResponse {
 template <int N>
 struct PACKED SmSetOobData {
     enum { cls = 5, cmd = 6 };
+    std::uint8_t length;
     std::uint8_t oob[N];
+};
+
+template <>
+struct PACKED SmSetOobData<0> {
+    enum { cls = 5, cmd = 6 };
+    std::uint8_t length;
 };
 
 struct PACKED SmSetOobDataResponse {
@@ -897,7 +1181,16 @@ struct PACKED SmSmpDataEvent {
     enum { cls = 5, cmd = 0 };
     std::uint8_t handle;
     std::uint8_t packet;
+    std::uint8_t length;
     std::uint8_t data[N];
+};
+
+template <>
+struct PACKED SmSmpDataEvent<0> {
+    enum { cls = 5, cmd = 0 };
+    std::uint8_t handle;
+    std::uint8_t packet;
+    std::uint8_t length;
 };
 
 struct PACKED SmBondingFailEvent {
@@ -1057,7 +1350,15 @@ template <int N>
 struct PACKED GapSetAdvData {
     enum { cls = 6, cmd = 9 };
     std::uint8_t set_scanrsp;
+    std::uint8_t length;
     std::uint8_t adv_data[N];
+};
+
+template <>
+struct PACKED GapSetAdvData<0> {
+    enum { cls = 6, cmd = 9 };
+    std::uint8_t set_scanrsp;
+    std::uint8_t length;
 };
 
 struct PACKED GapSetAdvDataResponse {
@@ -1084,7 +1385,19 @@ struct PACKED GapScanResponseEvent {
     std::uint8_t sender[6];
     std::uint8_t address_type;
     std::uint8_t bond;
+    std::uint8_t length;
     std::uint8_t data[N];
+};
+
+template <>
+struct PACKED GapScanResponseEvent<0> {
+    enum { cls = 6, cmd = 0 };
+    std::int8_t rssi;
+    std::uint8_t packet_type;
+    std::uint8_t sender[6];
+    std::uint8_t address_type;
+    std::uint8_t bond;
+    std::uint8_t length;
 };
 
 struct PACKED GapModeChangedEvent {
@@ -1273,7 +1586,15 @@ template <int N>
 struct PACKED HardwareSpiTransfer {
     enum { cls = 7, cmd = 9 };
     std::uint8_t channel;
+    std::uint8_t length;
     std::uint8_t data[N];
+};
+
+template <>
+struct PACKED HardwareSpiTransfer<0> {
+    enum { cls = 7, cmd = 9 };
+    std::uint8_t channel;
+    std::uint8_t length;
 };
 
 template <int N>
@@ -1281,10 +1602,18 @@ struct PACKED HardwareSpiTransferResponse {
     enum { cls = 7, cmd = 9 };
     std::uint16_t result;
     std::uint8_t channel;
+    std::uint8_t length;
     std::uint8_t data[N];
 };
 
-template <int N>
+template <>
+struct PACKED HardwareSpiTransferResponse<0> {
+    enum { cls = 7, cmd = 9 };
+    std::uint16_t result;
+    std::uint8_t channel;
+    std::uint8_t length;
+};
+
 struct PACKED HardwareI2CRead {
     enum { cls = 7, cmd = 10 };
     std::uint8_t address;
@@ -1296,7 +1625,15 @@ template <int N>
 struct PACKED HardwareI2CReadResponse {
     enum { cls = 7, cmd = 10 };
     std::uint16_t result;
+    std::uint8_t length;
     std::uint8_t data[N];
+};
+
+template <>
+struct PACKED HardwareI2CReadResponse<0> {
+    enum { cls = 7, cmd = 10 };
+    std::uint16_t result;
+    std::uint8_t length;
 };
 
 template <int N>
@@ -1304,7 +1641,16 @@ struct PACKED HardwareI2CWrite {
     enum { cls = 7, cmd = 11 };
     std::uint8_t address;
     std::uint8_t stop;
+    std::uint8_t length;
     std::uint8_t data[N];
+};
+
+template <>
+struct PACKED HardwareI2CWrite<0> {
+    enum { cls = 7, cmd = 11 };
+    std::uint8_t address;
+    std::uint8_t stop;
+    std::uint8_t length;
 };
 
 struct PACKED HardwareI2CWriteResponse {
@@ -1390,7 +1736,6 @@ struct PACKED TestPhyResetResponse {
     enum { cls = 8, cmd = 3 };
 };
 
-template <int N>
 struct PACKED TestGetChannelMap {
     enum { cls = 8, cmd = 4 };
 };
@@ -1398,25 +1743,40 @@ struct PACKED TestGetChannelMap {
 template <int N>
 struct PACKED TestGetChannelMapResponse {
     enum { cls = 8, cmd = 4 };
+    std::uint8_t length;
     std::uint8_t channel_map[N];
+};
+
+template <>
+struct PACKED TestGetChannelMapResponse<0> {
+    enum { cls = 8, cmd = 4 };
+    std::uint8_t length;
 };
 
 template <int N>
 struct PACKED TestDebug {
     enum { cls = 8, cmd = 5 };
+    std::uint8_t length;
     std::uint8_t input[N];
+};
+
+template <>
+struct PACKED TestDebug<0> {
+    enum { cls = 8, cmd = 5 };
+    std::uint8_t length;
 };
 
 template <int N>
 struct PACKED TestDebugResponse {
     enum { cls = 8, cmd = 5 };
+    std::uint8_t length;
     std::uint8_t output[N];
 };
 
-template <typename T>
-struct PACKED Command {
-    Header header;
-    T payload;
+template <>
+struct PACKED TestDebugResponse<0> {
+    enum { cls = 8, cmd = 5 };
+    std::uint8_t length;
 };
 
 #endif // BLEAPI_H
