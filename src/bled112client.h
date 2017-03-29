@@ -16,7 +16,7 @@ public:
     template <typename Function>
     using EnableIfFirstArgumentIsPartial = std::enable_if<Partial<typename FirstArgument<Function>::type>::value>;
 
-    Bled112Client(Serial &&socket)
+    Bled112Client(const Serial &socket)
         : socket(socket)
     { }
 
@@ -42,11 +42,11 @@ private:
     void dispatch(const Header &);
 
     template <typename Function, typename... Functions>
-    auto dispatch(const Header &header, const Function &function, const Functions&... functions)
+    auto dispatch(const Header &, const Function &, const Functions&...)
         ->  typename DisableIfFirstArgumentIsPartial<Function>::type;
 
     template <typename Function, typename... Functions>
-    auto dispatch(const Header &header, const Function &function, const Functions&... functions)
+    auto dispatch(const Header &, const Function &, const Functions&...)
         -> typename EnableIfFirstArgumentIsPartial<Function>::type;
 
     Serial socket;

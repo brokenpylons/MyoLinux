@@ -8,19 +8,19 @@
 
 #include <vector>
 
-using Buffer = std::vector<char>;
+using Buffer = std::vector<unsigned char>;
 
 template <typename T>
 Buffer pack(const T &payload)
 {
-    auto ptr = reinterpret_cast<const char *>(&payload);
+    const auto ptr = reinterpret_cast<const char *>(&payload);
     return Buffer{ptr, ptr + sizeof(T)};
 }
 
 template <typename T>
 T unpack(Buffer buf)
 {
-    auto ptr = reinterpret_cast<T *>(buf.data());
+    const auto ptr = reinterpret_cast<T *>(buf.data());
     return *ptr;
 }
 
