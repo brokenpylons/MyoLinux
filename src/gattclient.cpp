@@ -71,7 +71,7 @@ void GattClient::writeAttribute(const std::uint16_t handle, const Buffer &payloa
 Buffer GattClient::readAttribute(const std::uint16_t handle)
 {
     client.write(AttclientReadByHandle{connection, handle});
-    client.read<AttclientReadByHandleResponse>();
+    (void)client.read<AttclientReadByHandleResponse>();
 
     Buffer buf;
     const auto response = client.read<AttclientAttributeValueEvent<0>>(buf);

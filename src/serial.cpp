@@ -58,11 +58,11 @@ Serial::Serial(const std::string &device, const int baudrate)
         error("Cannot set settings");
     }
 
-    int iFlags = TIOCM_RTS;
-    ioctl(fd, TIOCMBIC, &iFlags);
+    int iflags = TIOCM_RTS;
+    ioctl(fd, TIOCMBIC, &iflags);
 
-    iFlags = TIOCM_DTR;
-    ioctl(fd, TIOCMBIS, &iFlags);
+    iflags = TIOCM_DTR;
+    ioctl(fd, TIOCMBIS, &iflags);
 }
 
 Buffer Serial::read(std::size_t size)

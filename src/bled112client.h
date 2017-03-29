@@ -127,7 +127,6 @@ auto Bled112Client::dispatch(const Header &header, const Function &function, con
     if (arg_type::cls == header.cls && arg_type::cmd == header.cmd) {
         const auto payload = unpack<arg_type>(socket.read(sizeof(arg_type)));
         const auto leftover = socket.read(header.length() - sizeof(arg_type));
-
         function(payload, leftover);
         return;
     }
