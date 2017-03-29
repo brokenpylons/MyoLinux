@@ -8,8 +8,8 @@
 #include <iomanip>
 #include <functional>
 
-GattClient::GattClient(Bled112Client &&client)
-    : client(std::move(client))
+GattClient::GattClient(const Bled112Client &client)
+    : client(client)
 { }
 
 static void print_address(const uint8_t *address)
@@ -65,6 +65,7 @@ void GattClient::writeAttribute(const std::uint16_t handle, const Buffer &payloa
 {
     client.write(AttclientAttributeWrite<0>{connection, handle, static_cast<std::uint8_t>(payload.size())}, payload);
     (void)client.read<AttclientAttributeWriteResponse>();
+    (void)client.read<AttclientProcedureCompletedEvent>();
 }
 
 Buffer GattClient::readAttribute(const std::uint16_t handle)
@@ -81,10 +82,10 @@ Buffer GattClient::readAttribute(const std::uint16_t handle)
     return buf;
 }
 
-void GattClient::readAttribute(const DispatchTable &dispatch_table)
+void GattClient::readAttribute(const std::function<void(const std::uint16_t, const Buffer&)> &callback)
 {
-    client.read([&dispatch_table](AttclientAttributeValueEvent<0> event, const Buffer &buf) {
-        dispatch_table.at(event.atthandle)(buf);
+    client.read([&callback](AttclientAttributeValueEvent<0> event, const Buffer &data) {
+        callback(event.atthandle, data);
     });
 }
 

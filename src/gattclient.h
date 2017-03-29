@@ -18,9 +18,8 @@ class GattClient {
 public:
     using Address = std::array<std::uint8_t, 6>;
     using Characteristics = std::map<Buffer, std::uint16_t>;
-    using DispatchTable = std::map<std::uint16_t, std::function<void(const Buffer &)>>;
 
-    GattClient(Bled112Client &&);
+    GattClient(const Bled112Client &);
 
     void discover();
     Characteristics characteristics();
@@ -28,7 +27,7 @@ public:
     void disconnect();
     void writeAttribute(const std::uint16_t, const Buffer &);
     Buffer readAttribute(const std::uint16_t);
-    void readAttribute(const DispatchTable &);
+    void readAttribute(const std::function<void(std::uint16_t handle, const Buffer &)> &callback);
 
 private:
     Bled112Client client;
