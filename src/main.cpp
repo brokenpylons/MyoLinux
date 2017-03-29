@@ -59,27 +59,28 @@ int main()
     }
     std::cout << std::endl;
 
-    // Read EMG, doesn't work
-//    cl.writeAttribute(0x19, Buffer{0x1, 0x3, 0x2, 0x0, 0x0});
-//    cl.writeAttribute(0x2b, Buffer{0x1, 0x0});
-//    cl.writeAttribute(0x2e, Buffer{0x1, 0x0});
-//    cl.writeAttribute(0x31, Buffer{0x1, 0x0});
-//    cl.writeAttribute(0x34, Buffer{0x1, 0x0});
+    // Read EMG
+    cl.writeAttribute(0x19, Buffer{0x1, 0x3, 0x2, 0x0, 0x0});
+    cl.writeAttribute(0x2c, Buffer{0x1, 0x0});
+    cl.writeAttribute(0x2f, Buffer{0x1, 0x0});
+    cl.writeAttribute(0x32, Buffer{0x1, 0x0});
+    cl.writeAttribute(0x35, Buffer{0x1, 0x0});
 
     // Read EMG data (Legacy mode)
-    cl.writeAttribute(0x19, Buffer{0x1, 0x3, 0x1, 0x0, 0x0});
-    cl.writeAttribute(0x28, Buffer{0x1, 0x0});
-
-    struct PACKED Packet {
-        std::uint16_t sample[8];
-        std::uint8_t moving;
-    };
+    //cl.writeAttribute(0x19, Buffer{0x1, 0x3, 0x1, 0x0, 0x0});
+    //cl.writeAttribute(0x28, Buffer{0x1, 0x0});
 
     auto cb = [&](const std::uint16_t, const Buffer &data)
     {
-        auto values = unpack<Packet>(data);
+        auto values = unpack<myohw_emg_data_t>(data);
         for (int i = 0; i < 8; i++) {
-            std::cout << static_cast<int>(values.sample[i]);
+            std::cout << static_cast<int>(values.sample1[i]);
+            if (i != 7) {
+                std::cout << ", ";
+            }
+        }
+        for (int i = 0; i < 8; i++) {
+            std::cout << static_cast<int>(values.sample2[i]);
             if (i != 7) {
                 std::cout << ", ";
             }
