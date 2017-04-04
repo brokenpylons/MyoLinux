@@ -2,21 +2,9 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-#include "serial.h"
-#include "bled112client.h"
-#include "gattclient.h"
-#include "bleapi.h"
-
-#include "myohw.h"
-
-#include <unistd.h>
-#include <netinet/in.h>
+#include "myolinux.h"
 
 #include <cinttypes>
-#include <iostream>
-#include <iomanip>
-
-#include <type_traits>
 
 void print_address(uint8_t *address)
 {
@@ -39,57 +27,53 @@ int main()
     Bled112Client dev(serial);
     GattClient cl(dev);
 
-    // Connect to device
+    //Connect to device
+//    cl.discover([](std::int8_t, GattClient::Address address, Buffer) {
+//        return false;
+//    });
+
     cl.connect(GattClient::Address{{0x73, 0x83, 0x1b, 0x61, 0xb3, 0xe2}});
+    MyoClient myo(cl);
 
     // Read firmware version
-    auto version = unpack<myohw_fw_version_t>(cl.readAttribute(0x17));
+    auto version = myo.firmwareVersion();
     std::cout << version.major << "."
         << version.minor << "."
         << version.patch << "."
         << version.hardware_rev << std::endl;
 
     // Vibrate
-    cl.writeAttribute(0x19, Buffer{0x03, 0x01, 0x02});
+    myo.vibrate(myohw_vibration_medium);
 
     // Read name
-    auto name = cl.readAttribute(0x3);
-    for (auto x : name) {
-        std::cout << x;
-    }
-    std::cout << std::endl;
+    auto name = myo.deviceName();
+    std::cout << name << std::endl;
 
     // Read EMG
-    cl.writeAttribute(0x19, Buffer{0x1, 0x3, 0x2, 0x0, 0x0});
-    cl.writeAttribute(0x2c, Buffer{0x1, 0x0});
-    cl.writeAttribute(0x2f, Buffer{0x1, 0x0});
-    cl.writeAttribute(0x32, Buffer{0x1, 0x0});
-    cl.writeAttribute(0x35, Buffer{0x1, 0x0});
+    myo.setMode(myohw_emg_mode_send_emg, myohw_imu_mode_send_data, myohw_classifier_mode_disabled);
 
-    // Read EMG data (Legacy mode)
-    //cl.writeAttribute(0x19, Buffer{0x1, 0x3, 0x1, 0x0, 0x0});
-    //cl.writeAttribute(0x28, Buffer{0x1, 0x0});
-
-    auto cb = [&](const std::uint16_t, const Buffer &data)
+    myo.onEmg([](MyoClient::EmgSample sample)
     {
-        auto values = unpack<myohw_emg_data_t>(data);
         for (int i = 0; i < 8; i++) {
-            std::cout << static_cast<int>(values.sample1[i]);
+            std::cout << static_cast<int>(sample[i]);
             if (i != 7) {
                 std::cout << ", ";
             }
         }
-        for (int i = 0; i < 8; i++) {
-            std::cout << static_cast<int>(values.sample2[i]);
-            if (i != 7) {
-                std::cout << ", ";
-            }
-        }
-
         std::cout << std::endl;
-    };
+    });
+
+    myo.onImu([](MyoClient::OrientationSample, MyoClient::AccelerometerSample acc, MyoClient::GyroscopeSample)
+    {
+        std::cout << acc[0] << std::endl;
+    });
 
     while (true) {
-        cl.readAttribute(cb);
+        myo.listen();
+        //myo.setMode(myohw_emg_mode_none, myohw_imu_mode_send_data, myohw_classifier_mode_disabled);
+
+        auto name = myo.deviceName();
+        std::cout << name << std::endl;
+
     }
 }

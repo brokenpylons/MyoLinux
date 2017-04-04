@@ -1,3 +1,7 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
 /* Copyright (c) 2015, Thalmic Labs Inc.
  * All rights reserved.
  *
@@ -27,7 +31,7 @@
 #ifndef MYOHW_H
 #define MYOHW_H
 
-#include <cstdint>
+#include <inttypes.h>
 
 #if defined(_MSC_VER) || defined(_WIN32)
 # pragma pack(push, 1)
@@ -71,37 +75,42 @@ static const int myohw_num_emg_sensors = 8;
     0x00, 0x00, 0x06, 0xd5      \
 }
 
-typedef enum {
-    ControlService                = 0x0001, ///< Myo info service
-    MyoInfoCharacteristic         = 0x0101, ///< Serial number for this Myo and various parameters which
-                                            ///< are specific to this firmware. Read-only attribute.
-                                            ///< See myohw_fw_info_t.
-    FirmwareVersionCharacteristic = 0x0201, ///< Current firmware version. Read-only characteristic.
-                                            ///< See myohw_fw_version_t.
-    CommandCharacteristic         = 0x0401, ///< Issue commands to the Myo. Write-only characteristic.
-                                            ///< See myohw_command_t.
+//typedef enum {
+//    ControlService                = 0x0001, ///< Myo info service
+//    MyoInfoCharacteristic         = 0x0101, ///< Serial number for this Myo and various parameters which
+//                                            ///< are specific to this firmware. Read-only attribute.
+//                                            ///< See myohw_fw_info_t.
+//    FirmwareVersionCharacteristic = 0x0201, ///< Current firmware version. Read-only characteristic.
+//                                            ///< See myohw_fw_version_t.
+//    CommandCharacteristic         = 0x0401, ///< Issue commands to the Myo. Write-only characteristic.
+//                                            ///< See myohw_command_t.
 
-    ImuDataService                = 0x0002, ///< IMU service
-    IMUDataCharacteristic         = 0x0402, ///< See myohw_imu_data_t. Notify-only characteristic.
-    MotionEventCharacteristic     = 0x0502, ///< Motion event data. Indicate-only characteristic.
+//    ImuDataService                = 0x0002, ///< IMU service
+//    IMUDataCharacteristic         = 0x0402, ///< See myohw_imu_data_t. Notify-only characteristic.
+//    MotionEventCharacteristic     = 0x0502, ///< Motion event data. Indicate-only characteristic.
 
-    ClassifierService             = 0x0003, ///< Classifier event service.
-    ClassifierEventCharacteristic = 0x0103, ///< Classifier event data. Indicate-only characteristic. See myohw_pose_t.
+//    ClassifierService             = 0x0003, ///< Classifier event service.
+//    ClassifierEventCharacteristic = 0x0103, ///< Classifier event data. Indicate-only characteristic. See myohw_pose_t.
 
-    EmgDataService                = 0x0005, ///< Raw EMG data service.
-    EmgData0Characteristic        = 0x0105, ///< Raw EMG data. Notify-only characteristic.
-    EmgData1Characteristic        = 0x0205, ///< Raw EMG data. Notify-only characteristic.
-    EmgData2Characteristic        = 0x0305, ///< Raw EMG data. Notify-only characteristic.
-    EmgData3Characteristic        = 0x0405, ///< Raw EMG data. Notify-only characteristic.
-} myohw_services;
+//    EmgDataService                = 0x0005, ///< Raw EMG data service.
+//    EmgData0Characteristic        = 0x0105, ///< Raw EMG data. Notify-only characteristic.
+//    EmgData1Characteristic        = 0x0205, ///< Raw EMG data. Notify-only characteristic.
+//    EmgData2Characteristic        = 0x0305, ///< Raw EMG data. Notify-only characteristic.
+//    EmgData3Characteristic        = 0x0405, ///< Raw EMG data. Notify-only characteristic.
 
-// Standard Bluetooth device services.
-typedef enum{
-    BatteryService                = 0x180f, ///< Battery service
-    BatteryLevelCharacteristic    = 0x2a19, ///< Current battery level information. Read/notify characteristic.
+//    EmgData0Descriptor            = 0x0105, ///< Raw EMG data. Descriptor
+//    EmgData1Descriptor            = 0x0105, ///< Raw EMG data. Descriptor
+//    EmgData2Descriptor            = 0x0105, ///< Raw EMG data. Descriptor
+//    EmgData3Descriptor            = 0x0105, ///< Raw EMG data. Descriptor
+//} myohw_services;
 
-    DeviceName                    = 0x2a00, ///< Device name data. Read/write characteristic.
-} myohw_standard_services;
+//// Standard Bluetooth device services.
+//typedef enum{
+//    BatteryService                = 0x180f, ///< Battery service
+//    BatteryLevelCharacteristic    = 0x2a19, ///< Current battery level information. Read/notify characteristic.
+
+//    DeviceName                    = 0x2a00, ///< Device name data. Read/write characteristic.
+//} myohw_standard_services;
 
 /// Supported poses.
 typedef enum {

@@ -12,7 +12,9 @@ set(HEADERS
     src/myohw.h
     src/bled112client.h
     src/gattclient.h
-    src/firstargument.h)
+    src/myoclient.h
+    src/firstargument.h
+    src/myolinux.h)
 
 set(SRC
    src/generator.py
@@ -20,6 +22,7 @@ set(SRC
    src/serial.cpp
    src/main.cpp
    src/gattclient.cpp
+   src/myoclient.cpp
    ${HEADERS})
 
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
