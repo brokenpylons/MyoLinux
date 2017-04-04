@@ -3,6 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 #include "myoclient.h"
+#include "bled112client.h"
 
 #include <utility>
 
@@ -15,14 +16,27 @@ const Buffer on{0x1, 0x0};
 const Buffer off{0x0, 0x0};
 }
 
-MyoClient::MyoClient(GattClient &client)
+MyoClient::MyoClient(const GattClient &client)
     : client(client)
+{ }
+
+MyoClient::MyoClient(const Serial& socket)
+    : client(GattClient{Bled112Client{socket}})
+{ }
+
+void MyoClient::connect(const GattClient::Address &address)
 {
+    client.connect(address);
     client.writeAttribute(EmgData0Descriptor, notify::on);
     client.writeAttribute(EmgData1Descriptor, notify::on);
     client.writeAttribute(EmgData2Descriptor, notify::on);
     client.writeAttribute(EmgData3Descriptor, notify::on);
     client.writeAttribute(IMUDataDescriptor, notify::on);
+}
+
+void MyoClient::disconnect()
+{
+    client.disconnect();
 }
 
 myohw_fw_info_t MyoClient::info()

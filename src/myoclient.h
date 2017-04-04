@@ -8,6 +8,7 @@
 
 #include "myolinux.h"
 #include "gattclient.h"
+#include "serial.h"
 
 #include <cinttypes>
 #include <map>
@@ -34,7 +35,11 @@ public:
     using AccelerometerSample = std::array<std::int16_t, 3>;
     using GyroscopeSample = std::array<std::int16_t, 3>;
 
-    MyoClient(GattClient &);
+    MyoClient(const GattClient &);
+    MyoClient(const Serial &);
+
+    void connect(const GattClient::Address &);
+    void disconnect();
 
     template <typename Type>
     Type read(const std::uint16_t);

@@ -13,17 +13,8 @@ using namespace myolinux;
 
 int main()
 {
-    Serial serial("/dev/ttyACM0", 115200);
-    Bled112Client dev(serial);
-    GattClient cl(dev);
-
-    //Connect to device
-//    cl.discover([](std::int8_t, GattClient::Address address, Buffer) {
-//        return false;
-//    });
-
-    cl.connect(GattClient::Address{{0x73, 0x83, 0x1b, 0x61, 0xb3, 0xe2}});
-    MyoClient myo(cl);
+    MyoClient myo(Serial{"/dev/ttyACM0", 115200});
+    myo.connect(GattClient::Address{{0x73, 0x83, 0x1b, 0x61, 0xb3, 0xe2}});
 
     // Read firmware version
     auto version = myo.firmwareVersion();
