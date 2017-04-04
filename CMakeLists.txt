@@ -32,7 +32,6 @@ set(EXAMPLE_SRC
     src/main.cpp
     ${HEADERS})
 
-set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --pedantic")
 
 add_library(${PROJECT_NAME} SHARED ${SRC})
