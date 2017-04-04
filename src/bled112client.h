@@ -1,9 +1,13 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
 #ifndef BLED112CLIENT_H
 #define BLED112CLIENT_H
 
 #include "bleapi.h"
-#include "serial.h"
 #include "firstargument.h"
+#include "serial.h"
 
 #include <functional>
 #include <map>
@@ -30,14 +34,22 @@ public:
     T read();
 
     template <typename T>
-    T read(Buffer &leftover);
+    T read(Buffer &);
 
     template <typename... Functions>
     void read(const Functions&...);
 
 private:
-    template <typename T>
     Header readHeader();
+
+    template <typename T>
+    void checkHeader(const Header &);
+
+    template <typename T>
+    T readPayload(const Header &);
+
+    template <typename T>
+    T readPayload(const Header &, Buffer &);
 
     void dispatch(const Header &);
 
@@ -67,10 +79,14 @@ void Bled112Client::write(const T &payload, const Buffer &leftover)
     socket.write(leftover);
 }
 
-template <typename T>
-Header Bled112Client::readHeader()
+inline Header Bled112Client::readHeader()
 {
-    const auto header = unpack<Header>(socket.read(sizeof(Header)));
+    return unpack<Header>(socket.read(sizeof(Header)));
+}
+
+template <typename T>
+void Bled112Client::checkHeader(const Header &header)
+{
     if (header.cls != T::cls) {
         throw std::runtime_error("Class index does not match the expected value.");
     }
@@ -80,26 +96,36 @@ Header Bled112Client::readHeader()
     if (!Partial<T>::value && header.length() != sizeof(T)) {
         throw std::runtime_error("Payload size does not match the expected value.");
     }
+}
 
-    return header;
+template <typename T>
+T Bled112Client::readPayload(const Header &header)
+{
+    return unpack<T>(socket.read(header.length()));
+}
+
+template <typename T>
+T Bled112Client::readPayload(const Header &header, Buffer &leftover)
+{
+    const auto payload = unpack<T>(socket.read(sizeof(T)));
+    leftover = socket.read(header.length() - sizeof(T));
+    return payload;
 }
 
 template <typename T>
 T Bled112Client::read()
 {
-    const auto header = readHeader<T>();
-    const auto payload = unpack<T>(socket.read(header.length()));
-    return payload;
+    const auto header = readHeader();
+    checkHeader<T>(header);
+    return readPayload<T>(header);
 }
 
 template <typename T>
 T Bled112Client::read(Buffer &leftover)
 {
-    const auto header = readHeader<T>();
-    const auto payload = unpack<T>(socket.read(sizeof(T)));
-    leftover = socket.read(header.length() - sizeof(T));
-
-    return payload;
+    const auto header = readHeader();
+    checkHeader<T>(header);
+    return readPayload<T>(header, leftover);
 }
 
 inline void Bled112Client::dispatch(const Header &) { }
@@ -108,11 +134,10 @@ template <typename Function, typename... Functions>
 auto Bled112Client::dispatch(const Header &header, const Function &function, const Functions&... functions)
     -> typename DisableIfFirstArgumentIsPartial<Function>::type
 {
-    using arg_type = typename FirstArgument<Function>::type;
+    using T = typename FirstArgument<Function>::type;
 
-    if (arg_type::cls == header.cls && arg_type::cmd == header.cmd &&
-            header.length() == sizeof(arg_type)) {
-        function(unpack<arg_type>(socket.read(header.length())));
+    if (header.cls == T::cls && header.cmd == T::cmd && header.length() == sizeof(T)) {
+        function(readPayload<T>(header));
         return;
     }
     dispatch(header, functions...);
@@ -122,21 +147,29 @@ template <typename Function, typename... Functions>
 auto Bled112Client::dispatch(const Header &header, const Function &function, const Functions&... functions)
     -> typename EnableIfFirstArgumentIsPartial<Function>::type
 {
-    using arg_type = typename FirstArgument<Function>::type;
+    using T = typename FirstArgument<Function>::type;
 
-    if (arg_type::cls == header.cls && arg_type::cmd == header.cmd) {
-        const auto payload = unpack<arg_type>(socket.read(sizeof(arg_type)));
-        const auto leftover = socket.read(header.length() - sizeof(arg_type));
-        function(payload, leftover);
+    if (header.cls == T::cls && header.cmd == T::cmd) {
+        Buffer leftover;
+        const auto payload = readPayload<T>(header, leftover);
+
+        function(std::move(payload), std::move(leftover));
         return;
     }
     dispatch(header, functions...);
 }
 
+// The dispatch works by iterating over a list of functions, the right one is selected based on the first argument.
+// In the case that the data type is partial an additional argument is required to pass the payload.
+//
+// Accepted function signatures:
+// void(Type)
+// void(Type, Buffer)
+
 template <typename... Functions>
 void Bled112Client::read(const Functions&... functions)
 {
-    const auto header = unpack<Header>(socket.read(sizeof(Header)));
+    const auto header = readHeader();
     dispatch(header, functions...);
 }
 
