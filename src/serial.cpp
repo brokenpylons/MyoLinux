@@ -4,12 +4,12 @@
 
 #include "serial.h"
 
+#include <fcntl.h>
 #include <stdlib.h>
 #include <string.h>
-#include <fcntl.h>
-#include <unistd.h>
 #include <sys/ioctl.h>
 #include <termios.h>
+#include <unistd.h>
 
 #include <map>
 #include <stdexcept>
@@ -65,14 +65,14 @@ Serial::Serial(const std::string &device, const int baudrate)
     ioctl(fd, TIOCMBIS, &iflags);
 }
 
-Buffer Serial::read(std::size_t size)
+Buffer Serial::read(const std::size_t size)
 {
     Buffer buffer(size);
     ::read(fd, buffer.data(), size);
     return buffer;
 }
 
-std::size_t Serial::write(Buffer buffer)
+std::size_t Serial::write(const Buffer &buffer)
 {
     auto size = ::write(fd, buffer.data(), buffer.size());
     if (size < 0) {

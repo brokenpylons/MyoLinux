@@ -18,9 +18,9 @@ Buffer pack(const T &payload)
 }
 
 template <typename T>
-T unpack(Buffer buf)
+T unpack(const Buffer &buf)
 {
-    const auto ptr = reinterpret_cast<T *>(buf.data());
+    const auto ptr = reinterpret_cast<const T *>(buf.data());
     return *ptr;
 }
 

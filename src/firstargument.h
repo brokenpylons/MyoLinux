@@ -9,9 +9,7 @@
 #include <type_traits>
 
 template <typename T>
-struct FirstArgument : FirstArgument<decltype(&T::operator())> {
-    //static_assert(false, "Invalid function type.");
-};
+struct FirstArgument : FirstArgument<decltype(&T::operator())> { };
 
 template <typename R, typename A, typename... Args>
 struct FirstArgument<R(A, Args...)> {

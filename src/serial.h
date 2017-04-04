@@ -15,8 +15,8 @@ class Serial {
 public:
     Serial(const std::string &, const int);
 
-    Buffer read(std::size_t);
-    std::size_t write(Buffer);
+    Buffer read(const std::size_t);
+    std::size_t write(const Buffer &);
 
 private:
     int fd;
