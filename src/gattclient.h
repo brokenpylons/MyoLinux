@@ -6,32 +6,67 @@
 #ifndef GATTCLIENT_H
 #define GATTCLIENT_H
 
-#include "buffer.h"
 #include "bled112client.h"
+#include "buffer.h"
 
-#include <cstdint>
-
-#include <map>
 #include <array>
+#include <cinttypes>
+#include <iomanip>
+#include <iostream>
+#include <map>
 
 class GattClient {
 public:
     using Address = std::array<std::uint8_t, 6>;
     using Characteristics = std::map<Buffer, std::uint16_t>;
+    using Event = std::pair<std::uint16_t, Buffer>;
 
     GattClient(const Bled112Client &);
 
-    void discover();
+    void discover(std::function<bool(std::int8_t, Address, Buffer)>);
     Characteristics characteristics();
     void connect(const Address &);
     void disconnect();
+
     void writeAttribute(const std::uint16_t, const Buffer &);
     Buffer readAttribute(const std::uint16_t);
-    void readAttribute(const std::function<void(std::uint16_t handle, const Buffer &)> &callback);
+    void listen(const std::function<void(std::uint16_t, Buffer)> &);
 
 private:
+    template <typename T>
+    T readResponse();
+
     Bled112Client client;
     std::uint8_t connection;
+    std::vector<Event> event_queue;
 };
+
+template <typename T>
+T GattClient::readResponse()
+{
+    T ret;
+
+    bool running = true;
+    const auto handle_response = [&running, &ret](T response)
+    {
+        running = false;
+        ret = response;
+    };
+
+    const auto value_event = [this](AttclientAttributeValueEvent<0> metadata, Buffer data)
+    {
+        const auto handle = metadata.atthandle;
+        event_queue.emplace_back(Event{handle, std::move(data)});
+    };
+
+    while (running) {
+        client.read(handle_response, value_event);
+    }
+
+    return ret;
+}
+
+void print_address(const uint8_t *);
+
 
 #endif // GATTCLIENT_H

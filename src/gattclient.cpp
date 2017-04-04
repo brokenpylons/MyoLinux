@@ -4,15 +4,9 @@
 
 #include "gattclient.h"
 
-#include <iostream>
-#include <iomanip>
 #include <functional>
 
-GattClient::GattClient(const Bled112Client &client)
-    : client(client)
-{ }
-
-static void print_address(const uint8_t *address)
+void print_address(const uint8_t *address)
 {
     std::ios state(NULL);
     state.copyfmt(std::cout);
@@ -27,24 +21,47 @@ static void print_address(const uint8_t *address)
     std::cout.copyfmt(state);
 }
 
-void GattClient::discover()
-{
-    Address address;
+GattClient::GattClient(const Bled112Client &client)
+    : client(client)
+{ }
 
+void GattClient::discover(std::function<bool(std::int8_t, Address, Buffer)> callback)
+{
     client.write(GapDiscover{GapDiscoverModeEnum::DiscoverGeneric});
-    client.read<GapDiscoverResponse>();
-    const auto resp = client.read<GapScanResponseEvent<32>>();
-    print_address(resp.sender);
-    std::copy(std::begin(resp.sender), std::end(resp.sender), std::begin(address));
+    (void)client.read<GapDiscoverResponse>();
+
+    while (true) {
+        Buffer buf;
+        const auto response = client.read<GapScanResponseEvent<0>>(buf);
+        print_address(response.sender);
+
+        Address address;
+        std::copy(std::begin(response.sender), std::end(response.sender), std::begin(address));
+
+        if (!callback(response.rssi, std::move(address), std::move(buf))) {
+            break;
+        }
+    }
 
     client.write(GapEndProcedure{});
-    client.read<GapEndProcedureResponse>();
-
-    print_address(address.data());
+    (void)client.read<GapEndProcedureResponse>();
 }
 
 void GattClient::connect(const Address &address)
 {
+    // Check if the connection already exists
+    for (std::uint8_t i = 0; i < 3; i++) { // The dongle supports 3 connections
+        client.write(ConnectionGetStatus{i});
+        (void)client.read<ConnectionGetStatusResponse>();
+        auto status = client.read<ConnectionStatusEvent>();
+
+        if (status.flags & ConnectionConnstatusEnum::Connected &&
+                std::equal(std::begin(address), std::end(address), std::begin(status.address))) {
+            connection = i;
+            return;
+        }
+    }
+
     GapConnectDirect command{{}, GapAddressTypeEnum::AddressTypePublic, 6, 6, 64, 0};
     std::copy(std::begin(address), std::end(address), std::begin(command.address));
     client.write(command);
@@ -58,34 +75,48 @@ void GattClient::connect(const Address &address)
 
 void GattClient::disconnect()
 {
-
+    client.write(ConnectionDisconnect{connection});
+    (void)client.read<ConnectionDisconnectResponse>();
 }
 
 void GattClient::writeAttribute(const std::uint16_t handle, const Buffer &payload)
 {
     client.write(AttclientAttributeWrite<0>{connection, handle, static_cast<std::uint8_t>(payload.size())}, payload);
-    (void)client.read<AttclientAttributeWriteResponse>();
-    (void)client.read<AttclientProcedureCompletedEvent>();
+    (void)readResponse<AttclientAttributeWriteResponse>();
+    (void)readResponse<AttclientProcedureCompletedEvent>();
 }
 
 Buffer GattClient::readAttribute(const std::uint16_t handle)
 {
     client.write(AttclientReadByHandle{connection, handle});
-    (void)client.read<AttclientReadByHandleResponse>();
+    (void)readResponse<AttclientReadByHandleResponse>();
 
-    Buffer buf;
-    const auto response = client.read<AttclientAttributeValueEvent<0>>(buf);
-    if (response.length != buf.size()) {
-        throw std::runtime_error("Data length does not match the expected value.");
+    Buffer data;
+retry:
+    const auto metadata = client.read<AttclientAttributeValueEvent<0>>(data);
+    if (metadata.atthandle != handle) {
+        const auto handle = metadata.atthandle;
+        event_queue.emplace_back(Event{handle, std::move(data)});
+        goto retry;
     }
 
-    return buf;
+    if (metadata.length != data.size()) {
+        throw std::runtime_error("Data length does not match the expected value.");
+    }
+    return data;
 }
 
-void GattClient::readAttribute(const std::function<void(const std::uint16_t, const Buffer&)> &callback)
+void GattClient::listen(const std::function<void(std::uint16_t, Buffer)> &callback)
 {
-    client.read([&callback](AttclientAttributeValueEvent<0> event, const Buffer &data) {
-        callback(event.atthandle, data);
+    // The events get ofloaded to the queue when reading the read or write request response,
+    // because the stream might have contained the events unrelated to the request.
+    for (const auto &event : event_queue) {
+        callback(std::get<0>(event), std::get<1>(event));
+    }
+    event_queue.clear();
+
+    client.read([&callback](AttclientAttributeValueEvent<0> metadata, Buffer data) {
+        callback(metadata.atthandle, std::move(data));
     });
 }
 
@@ -97,7 +128,7 @@ auto GattClient::characteristics() -> Characteristics
     (void)client.read<AttclientFindInformationResponse>();
 
     bool running = true;
-    auto information_found = [&](const AttclientFindInformationFoundEvent<0> &command, const Buffer &uuid)
+    auto information_found = [&](AttclientFindInformationFoundEvent<0> command, Buffer uuid)
     {
         if (command.length != uuid.size()) {
             throw std::runtime_error("UUID size does not match the expected value.");
