@@ -6,6 +6,8 @@
 
 #include <utility>
 
+#define ARRAY_SIZEOF(array) (sizeof(array) / sizeof(array[0]))
+
 namespace MYOLINUX_NAMESPACE {
 
 namespace notify {
@@ -70,11 +72,11 @@ void MyoClient::listen()
             const auto data = unpack<myohw_emg_data_t>(payload);
 
             EmgSample sample1;
-            std::copy(std::begin(data.sample1), std::end(data.sample1), std::begin(sample1));
+            std::copy(data.sample1, data.sample1 + ARRAY_SIZEOF(data.sample1), std::begin(sample1));
             emg_callback(std::move(sample1));
 
             EmgSample sample2;
-            std::copy(std::begin(data.sample2), std::end(data.sample2), std::begin(sample2));
+            std::copy(data.sample2, data.sample2 + ARRAY_SIZEOF(data.sample2), std::begin(sample2));
             emg_callback(std::move(sample2));
         }
         else if (imu_callback && handle == IMUDataCharacteristic) {
@@ -87,10 +89,10 @@ void MyoClient::listen()
             orientation_sample.z = data.orientation.z;
 
             AccelerometerSample accelerometer_sample;
-            std::copy(std::begin(data.accelerometer), std::end(data.accelerometer), std::begin(accelerometer_sample));
+            std::copy(data.accelerometer, data.accelerometer + ARRAY_SIZEOF(data.accelerometer), std::begin(accelerometer_sample));
 
             GyroscopeSample gyroscope_sample;
-            std::copy(std::begin(data.gyroscope), std::end(data.gyroscope), std::begin(gyroscope_sample));
+            std::copy(data.gyroscope, data.gyroscope + ARRAY_SIZEOF(data.gyroscope), std::begin(gyroscope_sample));
 
             imu_callback(std::move(orientation_sample), std::move(accelerometer_sample), std::move(gyroscope_sample));
         }
