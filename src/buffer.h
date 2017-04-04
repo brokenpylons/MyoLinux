@@ -3,10 +3,14 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 #pragma once
-#ifndef BUFFER_H
-#define BUFFER_H
+#ifndef MYOLINUX_BUFFER_H
+#define MYOLINUX_BUFFER_H
+
+#include "myolinux.h"
 
 #include <vector>
+
+namespace MYOLINUX_NAMESPACE {
 
 using Buffer = std::vector<unsigned char>;
 
@@ -24,4 +28,6 @@ T unpack(const Buffer &buf)
     return *ptr;
 }
 
-#endif // BUFFER_H
+}
+
+#endif // MYOLINUX_BUFFER_H

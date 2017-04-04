@@ -6,6 +6,8 @@
 
 #include <functional>
 
+namespace MYOLINUX_NAMESPACE {
+
 void print_address(const uint8_t *address)
 {
     std::ios state(NULL);
@@ -33,7 +35,6 @@ void GattClient::discover(std::function<bool(std::int8_t, Address, Buffer)> call
     while (true) {
         Buffer buf;
         const auto response = client.read<GapScanResponseEvent<0>>(buf);
-        print_address(response.sender);
 
         Address address;
         std::copy(std::begin(response.sender), std::end(response.sender), std::begin(address));
@@ -147,4 +148,6 @@ auto GattClient::characteristics() -> Characteristics
     }
 
     return chr;
+}
+
 }

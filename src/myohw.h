@@ -28,8 +28,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 #pragma once
-#ifndef MYOHW_H
-#define MYOHW_H
+#ifndef MYOLINUX_MYOHW_H
+#define MYOLINUX_MYOHW_H
 
 #include <inttypes.h>
 
@@ -415,4 +415,4 @@ MYOHW_STATIC_ASSERT_SIZED(myohw_emg_data_t, 16);
 # pragma pack(pop)
 #endif // _MSC_VER
 
-#endif // MYOHW_H
+#endif // MYOLINUX_MYOHW_H

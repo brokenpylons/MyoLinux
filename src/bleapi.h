@@ -6,11 +6,15 @@
 // Run "python generator.py" to regenerate
 
 #pragma once
-#ifndef BLEAPI_H
-#define BLEAPI_H
+#ifndef MYOLINUX_BLEAPI_H
+#define MYOLINUX_BLEAPI_H
+#define PACKED __attribute__((__packed__))
+
+#include "myolinux.h"
 
 #include <cinttypes>
-#define PACKED __attribute__((__packed__))
+
+namespace MYOLINUX_NAMESPACE {
 
 struct PACKED Header {
     std::uint8_t length1 : 3;
@@ -1782,5 +1786,7 @@ struct PACKED TestDebugResponse<0> {
     std::uint8_t length;
 };
 
+}
+
 #undef PACKED
-#endif // BLEAPI_H
+#endif // MYOLINUX_BLEAPI_H

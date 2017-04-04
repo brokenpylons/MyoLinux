@@ -2,6 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+#include "myolinux.h"
 #include "serial.h"
 
 #include <fcntl.h>
@@ -13,6 +14,8 @@
 
 #include <map>
 #include <stdexcept>
+
+namespace MYOLINUX_NAMESPACE {
 
 namespace {
 std::map<int, unsigned int> baudrates = {
@@ -79,4 +82,6 @@ std::size_t Serial::write(const Buffer &buffer)
         error("Write failed");
     }
     return static_cast<std::size_t>(size);
+}
+
 }

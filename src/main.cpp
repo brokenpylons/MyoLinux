@@ -2,24 +2,14 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-#include "myolinux.h"
+#include "bled112client.h"
+#include "gattclient.h"
+#include "myoclient.h"
+#include "serial.h"
 
 #include <cinttypes>
 
-void print_address(uint8_t *address)
-{
-    std::ios state(NULL);
-    state.copyfmt(std::cout);
-
-    for (int i = 0; i < 6; i++) {
-        std::cout << std::hex << std::setw(2) << (int)address[i];
-        if (i != 5) {
-            std::cout << ":";
-        }
-    }
-    std::cout << std::endl;
-    std::cout.copyfmt(state);
-}
+using namespace myolinux;
 
 int main()
 {

@@ -3,17 +3,23 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 #pragma once
-#ifndef MYOCLIENT_H
-#define MYOCLIENT_H
+#ifndef MYOLINUX_MYOCLIENT_H
+#define MYOLINUX_MYOCLIENT_H
 
+#include "myolinux.h"
 #include "gattclient.h"
 
 #include <cinttypes>
 #include <map>
 #include <memory>
 
+namespace MYOLINUX_NAMESPACE {
+
 extern "C" {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
 #include "myohw.h"
+#pragma GCC diagnostic pop
 }
 
 class MyoClient {
@@ -98,4 +104,6 @@ void MyoClient::command(const std::uint8_t command, Args&&... args)
     client.writeAttribute(CommandCharacteristic, pack(CommandType{std::move(header), std::forward<Args>(args)...}));
 }
 
-#endif // MYOCLIENT_H
+}
+
+#endif // MYOLINUX_MYOCLIENT_H

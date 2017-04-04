@@ -3,13 +3,16 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 #pragma once
-#ifndef SERIAL_H
-#define SERIAL_H
+#ifndef MYOLINUX_SERIAL_H
+#define MYOLINUX_SERIAL_H
 
+#include "myolinux.h"
 #include "buffer.h"
 
 #include <string>
 #include <vector>
+
+namespace MYOLINUX_NAMESPACE {
 
 class Serial {
 public:
@@ -22,4 +25,6 @@ private:
     int fd;
 };
 
-#endif // SERIAL_H
+}
+
+#endif // MYOLINUX_SERIAL_H

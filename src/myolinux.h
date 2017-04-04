@@ -1,9 +1,8 @@
 #ifndef MYOLINUX_H
 #define MYOLINUX_H
 
-#include "bled112client.h"
-#include "gattclient.h"
-#include "myoclient.h"
-#include "serial.h"
+#ifndef MYOLINUX_NAMESPACE
+#define MYOLINUX_NAMESPACE myolinux
+#endif
 
-#endif // MYOLINUX_H
+#endif // MYOLINUX_MYOLINUX_H

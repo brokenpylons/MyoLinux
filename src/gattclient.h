@@ -3,9 +3,10 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 #pragma once
-#ifndef GATTCLIENT_H
-#define GATTCLIENT_H
+#ifndef MYOLINUX_GATTCLIENT_H
+#define MYOLINUX_GATTCLIENT_H
 
+#include "myolinux.h"
 #include "bled112client.h"
 #include "buffer.h"
 
@@ -14,6 +15,8 @@
 #include <iomanip>
 #include <iostream>
 #include <map>
+
+namespace MYOLINUX_NAMESPACE {
 
 class GattClient {
 public:
@@ -68,5 +71,6 @@ T GattClient::readResponse()
 
 void print_address(const uint8_t *);
 
+}
 
-#endif // GATTCLIENT_H
+#endif // MYOLINUX_GATTCLIENT_H

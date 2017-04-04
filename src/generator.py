@@ -42,15 +42,17 @@ def generate_file_header(f):
     '''))
 
     f.write('#pragma once\n')
-    f.write('#ifndef BLEAPI_H\n')
-    f.write('#define BLEAPI_H\n\n')
-    f.write('#include <cinttypes>\n')
-    f.write('#define PACKED __attribute__((__packed__))\n')
-
+    f.write('#ifndef MYOLINUX_BLEAPI_H\n')
+    f.write('#define MYOLINUX_BLEAPI_H\n')
+    f.write('#define PACKED __attribute__((__packed__))\n\n')
+    f.write('#include "myolinux.h"\n\n')
+    f.write('#include <cinttypes>\n\n')
+    f.write('namespace MYOLINUX_NAMESPACE {\n')
 
 def generate_file_footer(f):
+    f.write('}\n\n')
     f.write('#undef PACKED\n')
-    f.write('#endif // BLEAPI_H')
+    f.write('#endif // MYOLINUX_BLEAPI_H')
 
 
 def camel_case(s):

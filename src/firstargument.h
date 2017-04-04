@@ -3,10 +3,12 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 #pragma once
-#ifndef FIRST_ARGUMENT_H
-#define FIRST_ARGUMENT_H
+#ifndef MYOLINUX_FIRST_ARGUMENT_H
+#define MYOLINUX_FIRST_ARGUMENT_H
 
 #include <type_traits>
+
+namespace MYOLINUX_NAMESPACE {
 
 template <typename T>
 struct FirstArgument : FirstArgument<decltype(&T::operator())> { };
@@ -41,4 +43,6 @@ struct FirstArgument<R (T::*)(const A&, Args...) const> {
     using type = A;
 };
 
-#endif // FIRST_ARGUMENT_H
+}
+
+#endif // MYOLINUX_FIRST_ARGUMENT_H

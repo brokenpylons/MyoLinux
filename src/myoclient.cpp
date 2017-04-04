@@ -6,9 +6,11 @@
 
 #include <utility>
 
+namespace MYOLINUX_NAMESPACE {
+
 namespace notify {
 const Buffer on{0x1, 0x0};
-const Buffer off{0x1, 0x0};
+const Buffer off{0x0, 0x0};
 }
 
 MyoClient::MyoClient(GattClient &client)
@@ -93,4 +95,6 @@ void MyoClient::listen()
             imu_callback(std::move(orientation_sample), std::move(accelerometer_sample), std::move(gyroscope_sample));
         }
     });
+}
+
 }

@@ -2,15 +2,18 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-#ifndef BLED112CLIENT_H
-#define BLED112CLIENT_H
+#ifndef MYOLINUX_BLED112CLIENT_H
+#define MYOLINUX_BLED112CLIENT_H
 
-#include "bleapi.h"
-#include "firstargument.h"
+#include "myolinux.h"
 #include "serial.h"
+#include "firstargument.h"
+#include "bleapi.h"
 
 #include <functional>
 #include <map>
+
+namespace MYOLINUX_NAMESPACE {
 
 class Bled112Client {
 public:
@@ -173,4 +176,6 @@ void Bled112Client::read(const Functions&... functions)
     dispatch(header, functions...);
 }
 
-#endif // BLED112CLIENT_H
+}
+
+#endif // MYOLINUX_BLED112CLIENT_H
