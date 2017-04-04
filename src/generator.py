@@ -49,6 +49,7 @@ def generate_file_header(f):
 
 
 def generate_file_footer(f):
+    f.write('#undef PACKED\n')
     f.write('#endif // BLEAPI_H')
 
 
@@ -120,7 +121,7 @@ if __name__ == '__main__':
         {
             const auto size = sizeof(T) + data_size;
             return Header{static_cast<std::uint8_t>(size >> 8), 0, 0,
-                        static_cast<std::uint8_t>(size & 0xFF), T::cls, T::cmd};
+                          static_cast<std::uint8_t>(size & 0xFF), T::cls, T::cmd};
         }
 
         template <typename T>

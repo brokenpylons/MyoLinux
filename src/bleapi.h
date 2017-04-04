@@ -31,7 +31,7 @@ Header getHeader(std::size_t data_size = 0)
 {
     const auto size = sizeof(T) + data_size;
     return Header{static_cast<std::uint8_t>(size >> 8), 0, 0,
-                static_cast<std::uint8_t>(size & 0xFF), T::cls, T::cmd};
+                  static_cast<std::uint8_t>(size & 0xFF), T::cls, T::cmd};
 }
 
 template <typename T>
@@ -1782,4 +1782,5 @@ struct PACKED TestDebugResponse<0> {
     std::uint8_t length;
 };
 
+#undef PACKED
 #endif // BLEAPI_H
