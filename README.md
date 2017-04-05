@@ -4,7 +4,7 @@
 
 C++ library for interfacing with the Myo armband on Linux
 
-## Instalation
+## Installation
 
 Clone the repository and run:
 
