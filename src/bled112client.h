@@ -163,7 +163,7 @@ auto Bled112Client::dispatch(const Header &header, const Function &function, con
 }
 
 // The dispatch works by iterating over a list of functions, the right one is selected based on the first argument.
-// In the case that the data type is partial an additional argument is required to pass the payload.
+// In the case that the data type is partial an additional argument is required to pass the leftover data.
 //
 // Accepted function signatures:
 // void(Type)
