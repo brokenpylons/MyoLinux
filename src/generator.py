@@ -49,6 +49,7 @@ def generate_file_header(f):
     f.write('#include <cinttypes>\n\n')
     f.write('namespace MYOLINUX_NAMESPACE {\n')
 
+
 def generate_file_footer(f):
     f.write('}\n\n')
     f.write('#undef PACKED\n')
