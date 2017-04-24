@@ -23,7 +23,7 @@ Currently the only way to install the library is to compile it from source. I wi
 
 ### Compiling from source
 
-First thing you will need is the source code, you can download it by clicking [here](https://github.com/brokenpylons/MyoLinux/archive/master.zip) or by cloning the repository.
+First thing you will need is the source code, you can download it by clicking [here](https://github.com/brokenpylons/MyoLinux/archive/master.zip) or by cloning the repository:
 
 ```
 git clone https://github.com/brokenpylons/MyoLinux.git
@@ -31,14 +31,14 @@ git clone https://github.com/brokenpylons/MyoLinux.git
 
 The only dependency of this project is CMake 2.8 (at least) which may already be installed by your distribution, if not install it. If you plan to modify the library you might also need Python 3.6 for auto-generating the BLED112 protocol implementation, however this step is otherwise not needed as the generated code is already included in the repository.
 
-For an out-of-source build first create a directory inside the project source tree and swich to it.
+For an out-of-source build first create a directory inside the project source tree and swich to it:
 
 ```
 mkdir build
 cd build
 ```
 
-Call CMake to generate the Makefile and call make to build the library. Finally install the library to the system (this will probably require the root permissions).
+Call CMake to generate the Makefile and call make to build the library. Finally install the library to the system (this will probably require the root permissions):
 
 ```
 cmake ..
