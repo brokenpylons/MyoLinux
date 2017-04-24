@@ -57,14 +57,14 @@ void GattClient::connect(const Address &address)
         auto status = client.read<ConnectionStatusEvent>();
 
         if (status.flags & ConnectionConnstatusEnum::Connected &&
-                std::equal(std::begin(address), std::end(address), std::begin(status.address))) {
+                std::equal(std::begin(address), std::end(address), status.address)) {
             connection = i;
             return;
         }
     }
 
     GapConnectDirect command{{}, GapAddressTypeEnum::AddressTypePublic, 6, 6, 64, 0};
-    std::copy(std::begin(address), std::end(address), std::begin(command.address));
+    std::copy(std::begin(address), std::end(address), command.address);
     client.write(command);
 
     const auto response = client.read<GapConnectDirectResponse>();
