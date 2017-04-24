@@ -38,7 +38,7 @@ mkdir build
 cd build
 ```
 
-Call CMake to generate the Makefile and call make to build the library. Finally install the library to the system (this will probably require the root permissions):
+Call CMake to generate the makefile and call Make to build the library. Finally install the library to the system (this will probably require the root permissions):
 
 ```
 cmake ..
