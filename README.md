@@ -29,7 +29,7 @@ First thing you will need is the source code, you can download it by clicking [h
 git clone https://github.com/brokenpylons/MyoLinux.git
 ```
 
-The only dependency of this project is CMake 2.8 (at least) which may already be installed by your distribution, if not install it. If you plan to modify the library you might also need Python 3.6 for auto-generating the BLED112 protocol implementation, however this step is otherwise not needed as the generated code is already included in the repository.
+The only nonstandard dependency of this project is CMake 2.8 (at least) which may already be installed by your distribution, if not install it. If you plan to modify the library you might also need Python 3.6 for auto-generating the BLED112 protocol implementation, however this step is otherwise not needed as the generated code is already included in the repository.
 
 For an out-of-source build first create a directory inside the project source tree and swich to it:
 
