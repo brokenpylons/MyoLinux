@@ -97,7 +97,9 @@ int main()
         std::cout << std::endl;
     });
 
-    myo.onImu([](MyoClient::OrientationSample ori, MyoClient::AccelerometerSample acc, MyoClient::GyroscopeSample gyr)
+    myo.onImu([](MyoClient::OrientationSample ori, 
+                 MyoClient::AccelerometerSample acc,
+                 MyoClient::GyroscopeSample gyr)
     {
         std::cout << ori.w << ", " << ori.x << ", " << ori.y << ", " <<  ori.z << std::endl;
         std::cout << acc[0] << ", " << acc[1] << ", " << acc[2] << std::endl;
