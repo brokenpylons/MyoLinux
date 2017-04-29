@@ -7,6 +7,12 @@
 #include "myoclient.h"
 #include "serial.h"
 
+// To use the example outside of the source tree replace with:
+//#include "myolinux/bled112client.h"
+//#include "myolinux/gattclient.h"
+//#include "myolinux/myoclient.h"
+//#include "myolinux/serial.h"
+
 #include <cinttypes>
 
 using namespace myolinux;
@@ -14,6 +20,8 @@ using namespace myolinux;
 int main()
 {
     MyoClient myo(Serial{"/dev/ttyACM0", 115200});
+
+    // Replace with the address of your device
     //myo.connect(GattClient::Address{{0x73, 0x83, 0x1b, 0x61, 0xb3, 0xe2}});
     myo.connect("E2:B3:61:1B:83:73");
 
