@@ -39,6 +39,7 @@ public:
     MyoClient(const Serial &);
 
     void connect(const GattClient::Address &);
+    void connect(const std::string &);
     void disconnect();
 
     template <typename Type>
@@ -94,6 +95,8 @@ private:
     GattClient client;
     std::function<void(EmgSample)> emg_callback;
     std::function<void(OrientationSample, AccelerometerSample, GyroscopeSample)> imu_callback;
+
+    void enable_notifications();
 };
 
 template <typename T>

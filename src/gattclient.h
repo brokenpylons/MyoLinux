@@ -20,7 +20,7 @@ namespace MYOLINUX_NAMESPACE {
 
 class GattClient {
 public:
-    using Address = std::array<std::uint8_t, 6>;
+    using Address = std::array<std::uint8_t, 6>; // Address byte sequence is in network order (probably reversed).
     using Characteristics = std::map<Buffer, std::uint16_t>;
     using Event = std::pair<std::uint16_t, Buffer>;
 
@@ -29,6 +29,7 @@ public:
     void discover(std::function<bool(std::int8_t, Address, Buffer)>);
     Characteristics characteristics();
     void connect(const Address &);
+    void connect(const std::string &);
     void disconnect();
 
     void writeAttribute(const std::uint16_t, const Buffer &);
@@ -69,7 +70,7 @@ T GattClient::readResponse()
     return ret;
 }
 
-void print_address(const uint8_t *);
+void print_address(const GattClient::Address &);
 
 }
 
