@@ -66,8 +66,8 @@ int main()
 {
     MyoClient myo(Serial{"/dev/ttyACM0", 115200});
     
-    // Replace with the address of your device (bytes are in network order)
-    myo.connect(GattClient::Address{{0x73, 0x83, 0x1b, 0x61, 0xb3, 0xe2}}); 
+    // Replace with the address of your device
+    myo.connect("E2:B3:61:1B:83:73"); 
 
     // Read firmware version
     auto version = myo.firmwareVersion();
