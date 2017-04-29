@@ -30,6 +30,7 @@ public:
     Characteristics characteristics();
     void connect(const Address &);
     void connect(const std::string &);
+    bool connected();
     void disconnect();
 
     void writeAttribute(const std::uint16_t, const Buffer &);
@@ -41,6 +42,7 @@ private:
     T readResponse();
 
     Bled112Client client;
+    bool connected_ = false;
     std::uint8_t connection;
     std::vector<Event> event_queue;
 };

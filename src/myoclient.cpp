@@ -47,6 +47,11 @@ void MyoClient::connect(const std::string &str)
 
 void MyoClient::disconnect()
 {
+    client.writeAttribute(EmgData0Descriptor, notify::off);
+    client.writeAttribute(EmgData1Descriptor, notify::off);
+    client.writeAttribute(EmgData2Descriptor, notify::off);
+    client.writeAttribute(EmgData3Descriptor, notify::off);
+    client.writeAttribute(IMUDataDescriptor, notify::off);
     client.disconnect();
 }
 

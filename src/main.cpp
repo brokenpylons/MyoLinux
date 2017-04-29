@@ -31,7 +31,7 @@ int main()
     auto name = myo.deviceName();
     std::cout << name << std::endl;
 
-    // Read EMG
+    // Read EMG and IMU
     myo.setMode(myohw_emg_mode_send_emg, myohw_imu_mode_send_data, myohw_classifier_mode_disabled);
 
     myo.onEmg([](MyoClient::EmgSample sample)
@@ -45,17 +45,21 @@ int main()
         std::cout << std::endl;
     });
 
-    myo.onImu([](MyoClient::OrientationSample, MyoClient::AccelerometerSample acc, MyoClient::GyroscopeSample)
+    myo.onImu([](MyoClient::OrientationSample ori, MyoClient::AccelerometerSample acc, MyoClient::GyroscopeSample gyr)
     {
-        std::cout << acc[0] << std::endl;
+        std::cout << ori.w << ", " << ori.x << ", " << ori.y << ", " <<  ori.z << std::endl;
+        std::cout << acc[0] << ", " << acc[1] << ", " << acc[2] << std::endl;
+        std::cout << gyr[0] << ", " << gyr[1] << ", " << gyr[2] << std::endl;
     });
 
-    while (true) {
+    for (int i = 0; i < 100; i++) {
         myo.listen();
-        //myo.setMode(myohw_emg_mode_none, myohw_imu_mode_send_data, myohw_classifier_mode_disabled);
 
         auto name = myo.deviceName();
         std::cout << name << std::endl;
 
     }
+
+    // Disconnect
+    myo.disconnect();
 }

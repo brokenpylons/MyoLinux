@@ -52,6 +52,10 @@ void GattClient::discover(std::function<bool(std::int8_t, Address, Buffer)> call
 void GattClient::connect(const Address &address)
 {
     // Check if the connection already exists
+    // Reviving the connection is only possible if no data has been sent i.e. setMode has not yet been called, otherwise
+    // the device will disconnect automatically when the program exits. There will be a short window before the
+    // disconnect in which the connection cannot be establised. To avoid this always call the disconnect method before
+    // exiting the program or add sleep(1) before the connect call.
     for (std::uint8_t i = 0; i < 3; i++) { // The dongle supports 3 connections
         client.write(ConnectionGetStatus{i});
         (void)client.read<ConnectionGetStatusResponse>();
@@ -72,7 +76,7 @@ void GattClient::connect(const Address &address)
     connection = response.connection_handle;
 
     (void)client.read<ConnectionStatusEvent>();
-    std::cout << "Connected" << std::endl;
+    connected_ = true;
 }
 
 void GattClient::connect(const std::string &str)
@@ -96,10 +100,21 @@ void GattClient::connect(const std::string &str)
     connect(address);
 }
 
+bool GattClient::connected()
+{
+    return connected_;
+}
+
 void GattClient::disconnect()
 {
+    if (!connected_) {
+        throw std::logic_error("Client is not connected.");
+    }
+
     client.write(ConnectionDisconnect{connection});
-    (void)client.read<ConnectionDisconnectResponse>();
+    (void)readResponse<ConnectionDisconnectResponse>();
+    (void)readResponse<ConnectionDisconnectedEvent>();
+    connected_ = false;
 }
 
 void GattClient::writeAttribute(const std::uint16_t handle, const Buffer &payload)
