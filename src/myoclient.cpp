@@ -24,14 +24,25 @@ MyoClient::MyoClient(const Serial& socket)
     : client(GattClient{Bled112Client{socket}})
 { }
 
-void MyoClient::connect(const GattClient::Address &address)
+void MyoClient::enable_notifications()
 {
-    client.connect(address);
     client.writeAttribute(EmgData0Descriptor, notify::on);
     client.writeAttribute(EmgData1Descriptor, notify::on);
     client.writeAttribute(EmgData2Descriptor, notify::on);
     client.writeAttribute(EmgData3Descriptor, notify::on);
     client.writeAttribute(IMUDataDescriptor, notify::on);
+}
+
+void MyoClient::connect(const GattClient::Address &address)
+{
+    client.connect(address);
+    enable_notifications();
+}
+
+void MyoClient::connect(const std::string &str)
+{
+    client.connect(str);
+    enable_notifications();
 }
 
 void MyoClient::disconnect()
@@ -103,10 +114,14 @@ void MyoClient::listen()
             orientation_sample.z = data.orientation.z;
 
             AccelerometerSample accelerometer_sample;
-            std::copy(data.accelerometer, data.accelerometer + ARRAY_SIZEOF(data.accelerometer), std::begin(accelerometer_sample));
+            std::copy(data.accelerometer,
+                      data.accelerometer + ARRAY_SIZEOF(data.accelerometer),
+                      std::begin(accelerometer_sample));
 
             GyroscopeSample gyroscope_sample;
-            std::copy(data.gyroscope, data.gyroscope + ARRAY_SIZEOF(data.gyroscope), std::begin(gyroscope_sample));
+            std::copy(data.gyroscope,
+                      data.gyroscope + ARRAY_SIZEOF(data.gyroscope),
+                      std::begin(gyroscope_sample));
 
             imu_callback(std::move(orientation_sample), std::move(accelerometer_sample), std::move(gyroscope_sample));
         }

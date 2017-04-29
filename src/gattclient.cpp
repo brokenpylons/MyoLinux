@@ -5,16 +5,17 @@
 #include "gattclient.h"
 
 #include <functional>
+#include <sstream>
 
 namespace MYOLINUX_NAMESPACE {
 
-void print_address(const uint8_t *address)
+void print_address(const GattClient::Address &address)
 {
-    std::ios state(NULL);
+    std::ios state(nullptr);
     state.copyfmt(std::cout);
 
-    for (int i = 0; i < 6; i++) {
-        std::cout << std::hex << std::setw(2) << (int)address[i];
+    for (std::size_t i = address.size(); i-- != 0; ) {
+        std::cout << std::hex << std::setw(2) << static_cast<int>(address[i]);
         if (i != 5) {
             std::cout << ":";
         }
@@ -72,6 +73,27 @@ void GattClient::connect(const Address &address)
 
     (void)client.read<ConnectionStatusEvent>();
     std::cout << "Connected" << std::endl;
+}
+
+void GattClient::connect(const std::string &str)
+{
+    std::istringstream ss(str);
+    Address address;
+
+
+    for (std::size_t i = address.size(); i-- != 0; ) {
+        int value;
+        ss >> std::hex >> value;
+        address[i] = static_cast<std::uint8_t>(value);
+
+        char delimiter;
+        ss >> delimiter;
+        if (delimiter != ':') {
+            throw std::runtime_error("Unexpected delimiter");
+        }
+    }
+
+    connect(address);
 }
 
 void GattClient::disconnect()
