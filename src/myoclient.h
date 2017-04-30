@@ -38,8 +38,13 @@ public:
     MyoClient(const GattClient &);
     MyoClient(const Serial &);
 
+    void discover(std::function<bool(std::int8_t, GattClient::Address, Buffer)>);
     void connect(const GattClient::Address &);
     void connect(const std::string &);
+    void connect();
+    bool connected();
+    GattClient::Address address();
+
     void disconnect();
 
     template <typename Type>

@@ -31,7 +31,11 @@ public:
     void connect(const Address &);
     void connect(const std::string &);
     bool connected();
+    Address address();
+
+    void disconnect(const std::uint8_t);
     void disconnect();
+    void disconnectAll();
 
     void writeAttribute(const std::uint16_t, const Buffer &);
     Buffer readAttribute(const std::uint16_t);
@@ -43,9 +47,14 @@ private:
 
     Bled112Client client;
     bool connected_ = false;
+    Address address_;
     std::uint8_t connection;
     std::vector<Event> event_queue;
 };
+
+// Read the response while beeing flooded by the events from the device. The packets are read until the correct one is
+// found. The ones containing the values (e.g. EMG and IMU data) are stored in a queue and then retrived in the listen
+// method, all other are dropped.
 
 template <typename T>
 T GattClient::readResponse()

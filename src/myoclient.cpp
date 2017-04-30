@@ -11,9 +11,13 @@
 
 namespace MYOLINUX_NAMESPACE {
 
-namespace notify {
+namespace notifications {
 const Buffer on{0x1, 0x0};
 const Buffer off{0x0, 0x0};
+}
+
+namespace {
+const std::vector<std::uint8_t> myo_uuid = MYO_SERVICE_INFO_UUID;
 }
 
 MyoClient::MyoClient(const GattClient &client)
@@ -24,13 +28,27 @@ MyoClient::MyoClient(const Serial& socket)
     : client(GattClient{Bled112Client{socket}})
 { }
 
+
+void MyoClient::discover(std::function<bool(std::int8_t, GattClient::Address, Buffer)> callback)
+{
+    client.disconnectAll();
+    client.discover([&callback](std::int8_t rssi, GattClient::Address address, Buffer data)
+    {
+        if (std::equal(std::prev(std::end(data), static_cast<decltype(data)::difference_type>(myo_uuid.size())),
+                       std::end(data), std::begin(myo_uuid))) {
+            return callback(rssi, address, data);
+        }
+        return true;
+    });
+}
+
 void MyoClient::enable_notifications()
 {
-    client.writeAttribute(EmgData0Descriptor, notify::on);
-    client.writeAttribute(EmgData1Descriptor, notify::on);
-    client.writeAttribute(EmgData2Descriptor, notify::on);
-    client.writeAttribute(EmgData3Descriptor, notify::on);
-    client.writeAttribute(IMUDataDescriptor, notify::on);
+    client.writeAttribute(EmgData0Descriptor, notifications::on);
+    client.writeAttribute(EmgData1Descriptor, notifications::on);
+    client.writeAttribute(EmgData2Descriptor, notifications::on);
+    client.writeAttribute(EmgData3Descriptor, notifications::on);
+    client.writeAttribute(IMUDataDescriptor, notifications::on);
 }
 
 void MyoClient::connect(const GattClient::Address &address)
@@ -45,13 +63,32 @@ void MyoClient::connect(const std::string &str)
     enable_notifications();
 }
 
+void MyoClient::connect()
+{
+    discover([this](std::int8_t, GattClient::Address address, Buffer)
+    {
+        this->connect(address);
+        return false;
+    });
+}
+
+bool MyoClient::connected()
+{
+    return client.connected();
+}
+
+GattClient::Address MyoClient::address()
+{
+    return client.address();
+}
+
 void MyoClient::disconnect()
 {
-    client.writeAttribute(EmgData0Descriptor, notify::off);
-    client.writeAttribute(EmgData1Descriptor, notify::off);
-    client.writeAttribute(EmgData2Descriptor, notify::off);
-    client.writeAttribute(EmgData3Descriptor, notify::off);
-    client.writeAttribute(IMUDataDescriptor, notify::off);
+    client.writeAttribute(EmgData0Descriptor, notifications::off);
+    client.writeAttribute(EmgData1Descriptor, notifications::off);
+    client.writeAttribute(EmgData2Descriptor, notifications::off);
+    client.writeAttribute(EmgData3Descriptor, notifications::off);
+    client.writeAttribute(IMUDataDescriptor, notifications::off);
     client.disconnect();
 }
 

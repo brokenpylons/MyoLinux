@@ -7,6 +7,8 @@
 #include <functional>
 #include <sstream>
 
+#define ARRAY_SIZEOF(array) (sizeof(array) / sizeof(array[0]))
+
 namespace MYOLINUX_NAMESPACE {
 
 void print_address(const GattClient::Address &address)
@@ -16,7 +18,7 @@ void print_address(const GattClient::Address &address)
 
     for (std::size_t i = address.size(); i-- != 0; ) {
         std::cout << std::hex << std::setw(2) << static_cast<int>(address[i]);
-        if (i != 5) {
+        if (i != 0) {
             std::cout << ":";
         }
     }
@@ -31,18 +33,23 @@ GattClient::GattClient(const Bled112Client &client)
 void GattClient::discover(std::function<bool(std::int8_t, Address, Buffer)> callback)
 {
     client.write(GapDiscover{GapDiscoverModeEnum::DiscoverGeneric});
-    (void)client.read<GapDiscoverResponse>();
 
-    while (true) {
-        Buffer buf;
-        const auto response = client.read<GapScanResponseEvent<0>>(buf);
+    bool running = true;
+    auto discover_response = [&](GapDiscoverResponse)
+    { };
 
+    auto discover_event = [&callback, &running](GapScanResponseEvent<0> event, Buffer data)
+    {
         Address address;
-        std::copy(std::begin(response.sender), std::end(response.sender), std::begin(address));
+        std::copy(event.sender, event.sender + ARRAY_SIZEOF(event.sender), std::begin(address));
 
-        if (!callback(response.rssi, std::move(address), std::move(buf))) {
-            break;
+        if (!callback(event.rssi, std::move(address), std::move(data))) {
+            running = false;
         }
+    };
+
+    while (running) {
+        client.read(discover_response, discover_event);
     }
 
     client.write(GapEndProcedure{});
@@ -58,8 +65,8 @@ void GattClient::connect(const Address &address)
     // exiting the program or add sleep(1) before the connect call.
     for (std::uint8_t i = 0; i < 3; i++) { // The dongle supports 3 connections
         client.write(ConnectionGetStatus{i});
-        (void)client.read<ConnectionGetStatusResponse>();
-        auto status = client.read<ConnectionStatusEvent>();
+        (void)readResponse<ConnectionGetStatusResponse>();
+        auto status = readResponse<ConnectionStatusEvent>();
 
         if (status.flags & ConnectionConnstatusEnum::Connected &&
                 std::equal(std::begin(address), std::end(address), status.address)) {
@@ -72,11 +79,12 @@ void GattClient::connect(const Address &address)
     std::copy(std::begin(address), std::end(address), command.address);
     client.write(command);
 
-    const auto response = client.read<GapConnectDirectResponse>();
+    const auto response = readResponse<GapConnectDirectResponse>();
     connection = response.connection_handle;
 
-    (void)client.read<ConnectionStatusEvent>();
+    (void)readResponse<ConnectionStatusEvent>();
     connected_ = true;
+    address_ = address;
 }
 
 void GattClient::connect(const std::string &str)
@@ -105,16 +113,36 @@ bool GattClient::connected()
     return connected_;
 }
 
-void GattClient::disconnect()
+auto GattClient::address() -> Address
 {
     if (!connected_) {
-        throw std::logic_error("Client is not connected.");
+        throw std::logic_error("Connection is not established, no address available.");
     }
 
+    return address_;
+}
+
+void GattClient::disconnect(const std::uint8_t connection)
+{
     client.write(ConnectionDisconnect{connection});
     (void)readResponse<ConnectionDisconnectResponse>();
-    (void)readResponse<ConnectionDisconnectedEvent>();
-    connected_ = false;
+
+    if (connected_ && this->connection == connection) {
+        (void)readResponse<ConnectionDisconnectedEvent>();
+        connected_ = false;
+    }
+}
+
+void GattClient::disconnect()
+{
+    disconnect(connection);
+}
+
+void GattClient::disconnectAll()
+{
+    for (std::uint8_t i = 0; i < 3; i++) { // The dongle supports 3 connections
+        disconnect(i);
+    }
 }
 
 void GattClient::writeAttribute(const std::uint16_t handle, const Buffer &payload)
@@ -166,13 +194,13 @@ auto GattClient::characteristics() -> Characteristics
     (void)client.read<AttclientFindInformationResponse>();
 
     bool running = true;
-    auto information_found = [&](AttclientFindInformationFoundEvent<0> command, Buffer uuid)
+    auto information_found = [&](AttclientFindInformationFoundEvent<0> event, Buffer uuid)
     {
-        if (command.length != uuid.size()) {
+        if (event.length != uuid.size()) {
             throw std::runtime_error("UUID size does not match the expected value.");
         }
 
-        chr[uuid] = command.chrhandle;
+        chr[uuid] = event.chrhandle;
     };
 
     auto procedure_completed = [&running](AttclientProcedureCompletedEvent)

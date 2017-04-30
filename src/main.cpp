@@ -21,9 +21,14 @@ int main()
 {
     MyoClient myo(Serial{"/dev/ttyACM0", 115200});
 
-    // Replace with the address of your device
-    //myo.connect(GattClient::Address{{0x73, 0x83, 0x1b, 0x61, 0xb3, 0xe2}});
-    myo.connect("E2:B3:61:1B:83:73");
+    // Autoconnect to the first Myo device
+    myo.connect();
+    if (!myo.connected()) {
+        return 1;
+    }
+
+    // Print device address
+    print_address(myo.address());
 
     // Read firmware version
     auto version = myo.firmwareVersion();
@@ -44,7 +49,7 @@ int main()
 
     myo.onEmg([](MyoClient::EmgSample sample)
     {
-        for (int i = 0; i < 8; i++) {
+        for (std::size_t i = 0; i < 8; i++) {
             std::cout << static_cast<int>(sample[i]);
             if (i != 7) {
                 std::cout << ", ";
