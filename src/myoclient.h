@@ -23,16 +23,34 @@ extern "C" {
 #pragma GCC diagnostic pop
 }
 
+///
+/// \brief The MyoClient class
+///
 class MyoClient {
 public:
+    ///
+    /// EmgSample
+    ///
     using EmgSample = std::array<std::int8_t, 8>;
 
     // The values are provided as received from the device. To obtain the actual values they must be scaled
     // by the appropriate scaling factor defined in "myohw.h".
+
+    ///
+    /// OrientationSample
+    ///
     struct OrientationSample {
         std::int16_t w, x, y, z;
     };
+
+    ///
+    /// AccelerometerSample
+    ///
     using AccelerometerSample = std::array<std::int16_t, 3>;
+
+    ///
+    /// GyroscopeSample
+    ///
     using GyroscopeSample = std::array<std::int16_t, 3>;
 
     MyoClient(const GattClient &);
@@ -44,16 +62,11 @@ public:
     void connect();
     bool connected();
     GattClient::Address address();
-
     void disconnect();
 
-    template <typename Type>
-    Type read(const std::uint16_t);
     myohw_fw_info_t info();
     myohw_fw_version_t firmwareVersion();
 
-    template <typename CommandType,  typename... Args>
-    void command(const std::uint8_t, Args&&...);
     void vibrate(const std::uint8_t);
     void setMode(const std::uint8_t, const std::uint8_t, const std::uint8_t);
 
@@ -97,11 +110,17 @@ private:
         DeviceName                    = 0x3,
     };
 
+    template <typename Type>
+    Type read(const std::uint16_t);
+
+    template <typename CommandType,  typename... Args>
+    void command(const std::uint8_t, Args&&...);
+
+    void enable_notifications();
+
     GattClient client;
     std::function<void(EmgSample)> emg_callback;
     std::function<void(OrientationSample, AccelerometerSample, GyroscopeSample)> imu_callback;
-
-    void enable_notifications();
 };
 
 template <typename T>

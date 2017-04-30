@@ -15,14 +15,11 @@
 
 namespace MYOLINUX_NAMESPACE {
 
+///
+/// \brief The Bled112Client class
+///
 class Bled112Client {
 public:
-    template <typename Function>
-    using DisableIfFirstArgumentIsPartial = std::enable_if<!Partial<typename FirstArgument<Function>::type>::value>;
-
-    template <typename Function>
-    using EnableIfFirstArgumentIsPartial = std::enable_if<Partial<typename FirstArgument<Function>::type>::value>;
-
     Bled112Client(const Serial &socket)
         : socket(socket)
     { }
@@ -43,6 +40,12 @@ public:
     void read(const Functions&...);
 
 private:
+    template <typename Function>
+    using DisableIfFirstArgumentIsPartial = std::enable_if<!Partial<typename FirstArgument<Function>::type>::value>;
+
+    template <typename Function>
+    using EnableIfFirstArgumentIsPartial = std::enable_if<Partial<typename FirstArgument<Function>::type>::value>;
+
     Header readHeader();
 
     template <typename T>

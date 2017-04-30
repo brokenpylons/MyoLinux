@@ -18,11 +18,13 @@
 
 namespace MYOLINUX_NAMESPACE {
 
+///
+/// \brief The GattClient class
+///
 class GattClient {
 public:
     using Address = std::array<std::uint8_t, 6>; // Address byte sequence is in network order (probably reversed).
     using Characteristics = std::map<Buffer, std::uint16_t>;
-    using Event = std::pair<std::uint16_t, Buffer>;
 
     GattClient(const Bled112Client &);
 
@@ -42,6 +44,8 @@ public:
     void listen(const std::function<void(std::uint16_t, Buffer)> &);
 
 private:
+    using Event = std::pair<std::uint16_t, Buffer>;
+
     template <typename T>
     T readResponse();
 

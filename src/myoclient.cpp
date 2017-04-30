@@ -20,15 +20,26 @@ namespace {
 const std::vector<std::uint8_t> myo_uuid = MYO_SERVICE_INFO_UUID;
 }
 
+///
+/// \brief MyoClient::MyoClient
+/// \param client
+///
 MyoClient::MyoClient(const GattClient &client)
     : client(client)
 { }
 
+///
+/// \brief MyoClient::MyoClient
+/// \param socket
+///
 MyoClient::MyoClient(const Serial& socket)
     : client(GattClient{Bled112Client{socket}})
 { }
 
-
+///
+/// \brief MyoClient::discover
+/// \param callback
+///
 void MyoClient::discover(std::function<bool(std::int8_t, GattClient::Address, Buffer)> callback)
 {
     client.disconnectAll();
@@ -51,18 +62,29 @@ void MyoClient::enable_notifications()
     client.writeAttribute(IMUDataDescriptor, notifications::on);
 }
 
+///
+/// \brief MyoClient::connect
+/// \param address
+///
 void MyoClient::connect(const GattClient::Address &address)
 {
     client.connect(address);
     enable_notifications();
 }
 
+///
+/// \brief MyoClient::connect
+/// \param str
+///
 void MyoClient::connect(const std::string &str)
 {
     client.connect(str);
     enable_notifications();
 }
 
+///
+/// \brief MyoClient::connect
+///
 void MyoClient::connect()
 {
     discover([this](std::int8_t, GattClient::Address address, Buffer)
@@ -72,16 +94,27 @@ void MyoClient::connect()
     });
 }
 
+///
+/// \brief MyoClient::connected
+/// \return
+///
 bool MyoClient::connected()
 {
     return client.connected();
 }
 
+///
+/// \brief MyoClient::address
+/// \return
+///
 GattClient::Address MyoClient::address()
 {
     return client.address();
 }
 
+///
+/// \brief MyoClient::disconnect
+///
 void MyoClient::disconnect()
 {
     client.writeAttribute(EmgData0Descriptor, notifications::off);
@@ -92,42 +125,75 @@ void MyoClient::disconnect()
     client.disconnect();
 }
 
+///
+/// \brief MyoClient::info
+/// \return
+///
 myohw_fw_info_t MyoClient::info()
 {
     return read<myohw_fw_info_t>(MyoInfoCharacteristic);
 }
 
+///
+/// \brief MyoClient::firmwareVersion
+/// \return
+///
 myohw_fw_version_t MyoClient::firmwareVersion()
 {
     return read<myohw_fw_version_t>(FirmwareVersionCharacteristic);
 }
 
+///
+/// \brief MyoClient::vibrate
+/// \param vibration_type
+///
 void MyoClient::vibrate(const std::uint8_t vibration_type)
 {
     command<myohw_command_vibrate_t>(myohw_command_vibrate, vibration_type);
 }
 
+///
+/// \brief MyoClient::setMode
+/// \param emg_mode
+/// \param imu_mode
+/// \param classifier_mode
+///
 void MyoClient::setMode(const std::uint8_t emg_mode, const std::uint8_t imu_mode, const std::uint8_t classifier_mode)
 {
     command<myohw_command_set_mode_t>(myohw_command_set_mode, emg_mode, imu_mode, classifier_mode);
 }
 
+///
+/// \brief MyoClient::deviceName
+/// \return
+///
 std::string MyoClient::deviceName()
 {
     auto buf = client.readAttribute(DeviceName);
     return std::string{std::begin(buf), std::end(buf)};
 }
 
+///
+/// \brief MyoClient::onEmg
+/// \param callback
+///
 void MyoClient::onEmg(const std::function<void(EmgSample)> &callback)
 {
     emg_callback = callback;
 }
 
+///
+/// \brief MyoClient::onImu
+/// \param callback
+///
 void MyoClient::onImu(const std::function<void(OrientationSample, AccelerometerSample, GyroscopeSample)> &callback)
 {
     imu_callback = callback;
 }
 
+///
+/// \brief MyoClient::listen
+///
 void MyoClient::listen()
 {
     client.listen([this](const std::uint16_t handle, const Buffer payload)
