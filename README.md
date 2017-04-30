@@ -65,9 +65,15 @@ using namespace myolinux;
 int main()
 {
     MyoClient myo(Serial{"/dev/ttyACM0", 115200});
-    
-    // Replace with the address of your device
-    myo.connect("E2:B3:61:1B:83:73"); 
+
+    // Autoconnect to the first Myo device
+    myo.connect();
+    if (!myo.connected()) {
+        return 1;
+    }
+
+    // Print device address
+    print_address(myo.address());
 
     // Read firmware version
     auto version = myo.firmwareVersion();
@@ -88,7 +94,7 @@ int main()
 
     myo.onEmg([](MyoClient::EmgSample sample)
     {
-        for (int i = 0; i < 8; i++) {
+        for (std::size_t i = 0; i < 8; i++) {
             std::cout << static_cast<int>(sample[i]);
             if (i != 7) {
                 std::cout << ", ";
@@ -97,8 +103,8 @@ int main()
         std::cout << std::endl;
     });
 
-    myo.onImu([](MyoClient::OrientationSample ori, 
-                 MyoClient::AccelerometerSample acc,
+    myo.onImu([](MyoClient::OrientationSample ori,
+                 MyoClient::AccelerometerSample acc, 
                  MyoClient::GyroscopeSample gyr)
     {
         std::cout << ori.w << ", " << ori.x << ", " << ori.y << ", " <<  ori.z << std::endl;
@@ -106,10 +112,14 @@ int main()
         std::cout << gyr[0] << ", " << gyr[1] << ", " << gyr[2] << std::endl;
     });
 
-    while (true) {
+    for (int i = 0; i < 100; i++) {
         myo.listen();
     }
+
+    // Disconnect
+    myo.disconnect();
 }
+
 ```
 
 ## Usage
@@ -133,4 +143,4 @@ Despite the name, the library might actually also work on Mac and Windows (using
 
 ## License
 
-This repository is placed under the MPL 2.0 license. See LICENSE for more details.
+This repository is placed under the MPL 2.0. See LICENSE for more details.
