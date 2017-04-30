@@ -16,6 +16,8 @@ C++ library for interfacing with the Myo armband on Linux.
   * reading info
   * issuing commands (partial)
   * listening to IMU and EMG events
+  
+## Documentation
 
 ## Installation
 
@@ -46,7 +48,7 @@ make
 make install
 ```
 
-### CMake
+### CMake external project 
 
 TODO
 
@@ -122,24 +124,13 @@ int main()
 
 ```
 
-## Usage
-
-The library is split into four layers:
-
-* Serial port
-* BLED112 protocol
-* GAP/GATT protocol
-* myohw protocol
-
-TODO
-
 ## Contributing
 
 Please open an issue if you find bugs or any other defficiencies. Pull requests are also wellcome. Note that by contributing to this repository you irrevocably license your work under the MPL 2.0.
 
 ## Porting
 
-Despite the name, the library might actually also work on Mac and Windows (using Cygwin) without or with minor modifications. If anyone is interested in testing the library on other platforms open an issue and please report your findings.
+Despite the name, the library might actually also work on Mac and Windows (using Cygwin) without or with minor modifications. If anyone is interested in testing the library on other platforms please open an issue and report your findings.
 
 ## License
 
