@@ -135,11 +135,11 @@ TODO
 
 ## Contributing
 
-Please open an issue if you find bugs or any other defficiencies. Pull requests are also wellcome. Note that by contributing to this project you irrevocably license your work under the MPL 2.0.
+Please open an issue if you find bugs or any other defficiencies. Pull requests are also wellcome. Note that by contributing to this repository you irrevocably license your work under the MPL 2.0.
 
 ## Porting
 
-Despite the name, the library might actually also work on Mac and Windows (using Cygwin) without or with minor modifications. If anyone is interested in testing the library on other platforms please open an issue and report your findings.
+Despite the name, the library might actually also work on Mac and Windows (using Cygwin) without or with minor modifications. If anyone is interested in testing the library on other platforms open an issue and please report your findings.
 
 ## License
 
