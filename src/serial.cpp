@@ -18,7 +18,7 @@
 namespace MYOLINUX_NAMESPACE {
 
 namespace {
-std::map<int, unsigned int> baudrates = {
+std::map<int, speed_t> baudrates = {
     { 9600,   B9600 },
     { 115200, B115200 },
 };
@@ -45,9 +45,9 @@ Serial::Serial(const std::string &device, const int baudrate)
     cfsetispeed(&settings, baudrates[baudrate]);
     cfsetospeed(&settings, baudrates[baudrate]);
 
-    settings.c_cflag &= ~static_cast<unsigned int>(PARENB);
-    settings.c_cflag &= ~static_cast<unsigned int>(CSTOPB);
-    settings.c_cflag &= ~static_cast<unsigned int>(CSIZE);
+    settings.c_cflag &= ~static_cast<tcflag_t>(PARENB);
+    settings.c_cflag &= ~static_cast<tcflag_t>(CSTOPB);
+    settings.c_cflag &= ~static_cast<tcflag_t>(CSIZE);
     settings.c_cflag |= CS8;
     settings.c_cflag |= CREAD | CLOCAL;
 
