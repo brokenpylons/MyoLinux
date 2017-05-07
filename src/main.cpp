@@ -23,6 +23,7 @@ int main()
 
     // Autoconnect to the first Myo device
     myo.connect();
+    //myo.connect("E2:B3:61:1B:83:73");
     if (!myo.connected()) {
         return 1;
     }
@@ -65,11 +66,11 @@ int main()
         std::cout << gyr[0] << ", " << gyr[1] << ", " << gyr[2] << std::endl;
     });
 
-    for (int i = 0; i < 100; i++) {
+    while (true) {
         myo.listen();
 
-        auto name = myo.deviceName();
-        std::cout << name << std::endl;
+//        auto name = myo.deviceName();
+//        std::cout << name << std::endl;
 
     }
 

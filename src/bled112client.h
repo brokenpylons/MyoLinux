@@ -12,12 +12,11 @@
 
 #include <functional>
 #include <map>
+#include <iostream>
 
 namespace MYOLINUX_NAMESPACE {
 
-///
-/// \brief The Bled112Client class
-///
+/// The Bled112Client class
 class Bled112Client {
 public:
     Bled112Client(const Serial &socket)
@@ -134,7 +133,8 @@ T Bled112Client::read(Buffer &leftover)
     return readPayload<T>(header, leftover);
 }
 
-inline void Bled112Client::dispatch(const Header &) { }
+inline void Bled112Client::dispatch(const Header &h)
+{ }
 
 template <typename Function, typename... Functions>
 auto Bled112Client::dispatch(const Header &header, const Function &function, const Functions&... functions)

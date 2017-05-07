@@ -30,6 +30,8 @@ GattClient::GattClient(const Bled112Client &client)
     : client(client)
 { }
 
+/// GattClient::discover
+/// \param callback
 void GattClient::discover(std::function<bool(std::int8_t, Address, Buffer)> callback)
 {
     client.write(GapDiscover{GapDiscoverModeEnum::DiscoverGeneric});
@@ -56,6 +58,8 @@ void GattClient::discover(std::function<bool(std::int8_t, Address, Buffer)> call
     (void)client.read<GapEndProcedureResponse>();
 }
 
+/// GattClient::connect
+/// \param address
 void GattClient::connect(const Address &address)
 {
     // Check if the connection already exists

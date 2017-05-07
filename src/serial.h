@@ -14,6 +14,7 @@
 
 namespace MYOLINUX_NAMESPACE {
 
+/// The Serial class
 class Serial {
 public:
     Serial(const std::string &, const int);

@@ -23,38 +23,30 @@ extern "C" {
 #pragma GCC diagnostic pop
 }
 
-///
-/// \brief The MyoClient class
-///
+/// The MyoClient class.
+/// This class depends on a GattClient instance for issuing GAP/GATT commands to the device.
+/// \ingroup myolinux
 class MyoClient {
 public:
-    ///
-    /// EmgSample
-    ///
-    using EmgSample = std::array<std::int8_t, 8>;
-
     // The values are provided as received from the device. To obtain the actual values they must be scaled
     // by the appropriate scaling factor defined in "myohw.h".
 
-    ///
+    /// EmgSample
+    using EmgSample = std::array<std::int8_t, 8>;
+
     /// OrientationSample
-    ///
     struct OrientationSample {
         std::int16_t w, x, y, z;
     };
 
-    ///
     /// AccelerometerSample
-    ///
     using AccelerometerSample = std::array<std::int16_t, 3>;
 
-    ///
     /// GyroscopeSample
-    ///
     using GyroscopeSample = std::array<std::int16_t, 3>;
 
-    MyoClient(const GattClient &);
     MyoClient(const Serial &);
+    MyoClient(const GattClient &);
 
     void discover(std::function<bool(std::int8_t, GattClient::Address, Buffer)>);
     void connect(const GattClient::Address &);
@@ -110,11 +102,13 @@ private:
         DeviceName                    = 0x3,
     };
 
+    /// \cond private
     template <typename Type>
     Type read(const std::uint16_t);
 
     template <typename CommandType,  typename... Args>
     void command(const std::uint8_t, Args&&...);
+    /// \endcond
 
     void enable_notifications();
 

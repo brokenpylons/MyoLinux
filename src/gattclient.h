@@ -18,9 +18,7 @@
 
 namespace MYOLINUX_NAMESPACE {
 
-///
-/// \brief The GattClient class
-///
+/// The GattClient class
 class GattClient {
 public:
     using Address = std::array<std::uint8_t, 6>; // Address byte sequence is in network order (probably reversed).
