@@ -24,6 +24,9 @@ public:
     using Address = std::array<std::uint8_t, 6>; // Address byte sequence is in network order (probably reversed).
     using Characteristics = std::map<Buffer, std::uint16_t>;
 
+    class DisconnectedException : public std::exception
+    { };
+
     GattClient(const Bled112Client &);
 
     void discover(std::function<bool(std::int8_t, Address, Buffer)>);

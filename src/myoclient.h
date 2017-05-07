@@ -45,11 +45,14 @@ public:
     /// GyroscopeSample
     using GyroscopeSample = std::array<std::int16_t, 3>;
 
+    using Address = GattClient::Address;
+    using DisconnectedException = GattClient::DisconnectedException;
+
     MyoClient(const Serial &);
     MyoClient(const GattClient &);
 
-    void discover(std::function<bool(std::int8_t, GattClient::Address, Buffer)>);
-    void connect(const GattClient::Address &);
+    void discover(std::function<bool(std::int8_t, Address, Buffer)>);
+    void connect(const Address &);
     void connect(const std::string &);
     void connect();
     bool connected();

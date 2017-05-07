@@ -185,9 +185,15 @@ void GattClient::listen(const std::function<void(std::uint16_t, Buffer)> &callba
     }
     event_queue.clear();
 
-    client.read([&callback](AttclientAttributeValueEvent<0> metadata, Buffer data) {
-        callback(metadata.atthandle, std::move(data));
-    });
+    const auto value_event = [&callback](AttclientAttributeValueEvent<0> event, Buffer data) {
+        callback(event.atthandle, std::move(data));
+    };
+
+    const auto disconnected_event = [](ConnectionDisconnectedEvent) {
+        throw DisconnectedException{};
+    };
+
+    client.read(value_event, disconnected_event);
 }
 
 auto GattClient::characteristics() -> Characteristics

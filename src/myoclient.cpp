@@ -39,10 +39,10 @@ MyoClient::MyoClient(const GattClient &client)
 /// Discovers the nearby Myo devices.
 /// The functionality is the same as in GattClient::discover, except that the non-Myo devices are filtered out.
 /// \param callback
-void MyoClient::discover(std::function<bool(std::int8_t, GattClient::Address, Buffer)> callback)
+void MyoClient::discover(std::function<bool(std::int8_t, Address, Buffer)> callback)
 {
     client.disconnectAll();
-    client.discover([&callback](std::int8_t rssi, GattClient::Address address, Buffer data)
+    client.discover([&callback](std::int8_t rssi, Address address, Buffer data)
     {
         print_address(address);
         if (std::equal(std::prev(std::end(data), static_cast<decltype(data)::difference_type>(myo_uuid.size())),
@@ -66,7 +66,7 @@ void MyoClient::enable_notifications()
 /// The address is in network order, so it might be in reverse on your arhitecture. To find the address of your device
 /// use the MyoClient::discover method or use the bluetoothctl tool.
 /// \param address address of the device
-void MyoClient::connect(const GattClient::Address &address)
+void MyoClient::connect(const Address &address)
 {
     client.connect(address);
     enable_notifications();
@@ -88,7 +88,7 @@ void MyoClient::connect(const std::string &str)
 /// connected to can then be found using the MyoClient::address method.
 void MyoClient::connect()
 {
-    discover([this](std::int8_t, GattClient::Address address, Buffer)
+    discover([this](std::int8_t, Address address, Buffer)
     {
         connect(address);
         return false;
@@ -105,7 +105,7 @@ bool MyoClient::connected()
 /// Returns the address of the connected device.
 /// If the client is not connected an exception is thrown.
 /// \return the address of the device
-GattClient::Address MyoClient::address()
+auto MyoClient::address() -> Address
 {
     return client.address();
 }
