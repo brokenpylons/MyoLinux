@@ -61,6 +61,7 @@ public:
 
     void vibrate(const std::uint8_t);
     void setMode(const std::uint8_t, const std::uint8_t, const std::uint8_t);
+    void setSleepMode(const std::uint8_t);
 
     std::string deviceName();
 

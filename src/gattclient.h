@@ -61,26 +61,26 @@ private:
 template <typename T>
 T GattClient::readResponse()
 {
-    T ret;
+    T response;
 
     bool running = true;
-    const auto handle_response = [&running, &ret](T response)
+    const auto response_event = [&running, &response](T event)
     {
         running = false;
-        ret = response;
+        response = event;
     };
 
-    const auto value_event = [this](AttclientAttributeValueEvent<0> metadata, Buffer data)
+    const auto value_event = [this](AttclientAttributeValueEvent<0> event, Buffer data)
     {
-        const auto handle = metadata.atthandle;
+        const auto handle = event.atthandle;
         event_queue.emplace_back(Event{handle, std::move(data)});
     };
 
     while (running) {
-        client.read(handle_response, value_event);
+        client.read(response_event, value_event);
     }
 
-    return ret;
+    return response;
 }
 
 void print_address(const GattClient::Address &);

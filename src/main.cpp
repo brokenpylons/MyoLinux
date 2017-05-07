@@ -45,6 +45,9 @@ int main()
     auto name = myo.deviceName();
     std::cout << name << std::endl;
 
+    // Set sleep mode (otherwise the device auto disconnects after a while)
+    myo.setSleepMode(myohw_sleep_mode_never_sleep);
+
     // Read EMG and IMU
     myo.setMode(myohw_emg_mode_send_emg, myohw_imu_mode_send_data, myohw_classifier_mode_disabled);
 
@@ -69,9 +72,8 @@ int main()
     while (true) {
         myo.listen();
 
-//        auto name = myo.deviceName();
-//        std::cout << name << std::endl;
-
+        auto name = myo.deviceName();
+        std::cout << name << std::endl;
     }
 
     // Disconnect

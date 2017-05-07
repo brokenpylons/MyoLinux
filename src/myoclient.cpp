@@ -151,6 +151,13 @@ void MyoClient::setMode(const std::uint8_t emg_mode, const std::uint8_t imu_mode
     command<myohw_command_set_mode_t>(myohw_command_set_mode, emg_mode, imu_mode, classifier_mode);
 }
 
+/// MyoClient::setSleepMode
+/// \param sleep_mode
+void MyoClient::setSleepMode(const std::uint8_t sleep_mode)
+{
+    command<myohw_command_set_sleep_mode_t>(myohw_command_set_sleep_mode, sleep_mode);
+}
+
 /// MyoClient::deviceName
 /// \return
 std::string MyoClient::deviceName()

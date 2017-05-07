@@ -5,7 +5,6 @@
 #define MYOLINUX_NAMESPACE myolinux
 #endif
 
-///
 /// \mainpage
 ///
 ///
