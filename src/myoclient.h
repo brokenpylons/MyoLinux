@@ -37,6 +37,17 @@ public:
     /// OrientationSample
     struct OrientationSample {
         std::int16_t w, x, y, z;
+
+        std::int16_t operator [](int i)
+        {
+            switch(i) {
+            case 0: return w;
+            case 1: return x;
+            case 2: return y;
+            case 3: return z;
+            }
+            throw std::logic_error("Index out of range.");
+        }
     };
 
     /// AccelerometerSample

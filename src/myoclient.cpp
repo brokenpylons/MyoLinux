@@ -44,7 +44,6 @@ void MyoClient::discover(std::function<bool(std::int8_t, Address, Buffer)> callb
     client.disconnectAll();
     client.discover([&callback](std::int8_t rssi, Address address, Buffer data)
     {
-        print_address(address);
         if (std::equal(std::prev(std::end(data), static_cast<decltype(data)::difference_type>(myo_uuid.size())),
                        std::end(data), std::begin(myo_uuid))) {
             return callback(rssi, std::move(address), std::move(data));
