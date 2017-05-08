@@ -35,20 +35,7 @@ public:
     using EmgSample = std::array<std::int8_t, 8>;
 
     /// OrientationSample
-    struct OrientationSample {
-        std::int16_t w, x, y, z;
-
-        std::int16_t operator [](int i)
-        {
-            switch(i) {
-            case 0: return w;
-            case 1: return x;
-            case 2: return y;
-            case 3: return z;
-            }
-            throw std::logic_error("Index out of range.");
-        }
-    };
+    using OrientationSample = std::array<std::int16_t, 4>;
 
     /// AccelerometerSample
     using AccelerometerSample = std::array<std::int16_t, 3>;

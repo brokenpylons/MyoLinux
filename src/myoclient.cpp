@@ -202,10 +202,10 @@ void MyoClient::listen()
             const auto data = unpack<myohw_imu_data_t>(payload);
 
             OrientationSample orientation_sample;
-            orientation_sample.w = data.orientation.w;
-            orientation_sample.x = data.orientation.x;
-            orientation_sample.y = data.orientation.y;
-            orientation_sample.z = data.orientation.z;
+            orientation_sample[0] = data.orientation.w;
+            orientation_sample[1] = data.orientation.x;
+            orientation_sample[2] = data.orientation.y;
+            orientation_sample[3] = data.orientation.z;
 
             AccelerometerSample accelerometer_sample;
             std::copy(data.accelerometer,
