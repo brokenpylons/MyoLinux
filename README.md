@@ -109,7 +109,7 @@ int main()
                  MyoClient::AccelerometerSample acc, 
                  MyoClient::GyroscopeSample gyr)
     {
-        std::cout << ori.w << ", " << ori.x << ", " << ori.y << ", " <<  ori.z << std::endl;
+        std::cout << ori[0] << ", " << ori[1] << ", " << ori[2] << ", " <<  ori[3] << std::endl;
         std::cout << acc[0] << ", " << acc[1] << ", " << acc[2] << std::endl;
         std::cout << gyr[0] << ", " << gyr[1] << ", " << gyr[2] << std::endl;
     });
