@@ -10,6 +10,7 @@
 #define ARRAY_SIZEOF(array) (sizeof(array) / sizeof(array[0]))
 
 namespace MYOLINUX_NAMESPACE {
+namespace myo {
 
 namespace notifications {
 const Buffer on{0x1, 0x0};
@@ -23,23 +24,23 @@ const std::vector<std::uint8_t> myo_uuid = MYO_SERVICE_INFO_UUID;
 /// Creates an object for communication with a Myo device from a serial socket.
 /// This constructor creates the entire client stack internally. This is the prefered constructor for general use.
 /// \param socket the serial socket for communication
-MyoClient::MyoClient(const Serial& socket)
-    : client(GattClient{Bled112Client{socket}})
+Client::Client(const Serial& socket)
+    : client(gatt::Client{bled112::Client{socket}})
 { }
 
-/// Creates an object for communication with a Myo device from a GattClient instance.
-/// For debugging purposes the GattClient instance that has been passed to this constructor may still be used for
+/// Creates an object for communication with a Myo device from a gatt::Client instance.
+/// For debugging purposes the gatt::Client instance that has been passed to this constructor may still be used for
 /// issuing raw GATT commands, if the client has been connected beforehand. This limitation exists because a copy of the
-/// instance is stored and the call to the GattClient#connect alters the state of the object.
-/// \param client the GattClient instance
-MyoClient::MyoClient(const GattClient &client)
+/// instance is stored and the call to the gatt::Client#connect alters the state of the object.
+/// \param client the gatt::Client instance
+Client::Client(const gatt::Client &client)
     : client(client)
 { }
 
 /// Discovers the nearby Myo devices.
-/// The functionality is the same as in GattClient::discover, except that the non-Myo devices are filtered out.
+/// The functionality is the same as in gatt::Client::discover, except that the non-Myo devices are filtered out.
 /// \param callback
-void MyoClient::discover(std::function<bool(std::int8_t, Address, Buffer)> callback)
+void Client::discover(std::function<bool(std::int8_t, Address, Buffer)> callback)
 {
     client.disconnectAll();
     client.discover([&callback](std::int8_t rssi, Address address, Buffer data)
@@ -52,7 +53,7 @@ void MyoClient::discover(std::function<bool(std::int8_t, Address, Buffer)> callb
     });
 }
 
-void MyoClient::enable_notifications()
+void Client::enable_notifications()
 {
     client.writeAttribute(EmgData0Descriptor, notifications::on);
     client.writeAttribute(EmgData1Descriptor, notifications::on);
@@ -63,9 +64,9 @@ void MyoClient::enable_notifications()
 
 /// Connect to the device with the specified address.
 /// The address is in network order, so it might be in reverse on your arhitecture. To find the address of your device
-/// use the MyoClient::discover method or use the bluetoothctl tool.
+/// use the Client::discover method or use the bluetoothctl tool.
 /// \param address address of the device
-void MyoClient::connect(const Address &address)
+void Client::connect(const Address &address)
 {
     client.connect(address);
     enable_notifications();
@@ -76,7 +77,7 @@ void MyoClient::connect(const Address &address)
 /// bluetoothctl tool.
 /// Example: 01:23:E2:D4:4D:66
 /// \param str string form of the address
-void MyoClient::connect(const std::string &str)
+void Client::connect(const std::string &str)
 {
     client.connect(str);
     enable_notifications();
@@ -84,8 +85,8 @@ void MyoClient::connect(const std::string &str)
 
 /// Auto-connect the client to the first device.
 /// The client scans for devices and connects to the first one it finds. The address of the device that the client
-/// connected to can then be found using the MyoClient::address method.
-void MyoClient::connect()
+/// connected to can then be found using the Client::address method.
+void Client::connect()
 {
     discover([this](std::int8_t, Address address, Buffer)
     {
@@ -96,7 +97,7 @@ void MyoClient::connect()
 
 /// Checks whether the client is connected.
 /// \return is the client connected
-bool MyoClient::connected()
+bool Client::connected()
 {
     return client.connected();
 }
@@ -104,13 +105,13 @@ bool MyoClient::connected()
 /// Returns the address of the connected device.
 /// If the client is not connected an exception is thrown.
 /// \return the address of the device
-auto MyoClient::address() -> Address
+Address Client::address()
 {
     return client.address();
 }
 
 /// Disconnect the client
-void MyoClient::disconnect()
+void Client::disconnect()
 {
     client.writeAttribute(EmgData0Descriptor, notifications::off);
     client.writeAttribute(EmgData1Descriptor, notifications::off);
@@ -122,65 +123,68 @@ void MyoClient::disconnect()
 
 /// Get the device info.
 /// \return device info
-myohw_fw_info_t MyoClient::info()
+FwInfo Client::info()
 {
-    return read<myohw_fw_info_t>(MyoInfoCharacteristic);
+    return read<FwInfo>(MyoInfoCharacteristic);
 }
 
 /// Get the firmware version.
 /// \return firmware version
-myohw_fw_version_t MyoClient::firmwareVersion()
+FwVersion Client::firmwareVersion()
 {
-    return read<myohw_fw_version_t>(FirmwareVersionCharacteristic);
+    return read<FwVersion>(FirmwareVersionCharacteristic);
 }
 
-/// MyoClient::vibrate
+/// Client::vibrate
 /// \param vibration_type
-void MyoClient::vibrate(const std::uint8_t vibration_type)
+void Client::vibrate(const Vibration vibration_type)
 {
-    command<myohw_command_vibrate_t>(myohw_command_vibrate, vibration_type);
+    command<CommandVibrate>(Command::Vibrate, static_cast<std::uint8_t>(vibration_type));
 }
 
-/// MyoClient::setMode
+/// Client::setMode
 /// \param emg_mode
 /// \param imu_mode
 /// \param classifier_mode
-void MyoClient::setMode(const std::uint8_t emg_mode, const std::uint8_t imu_mode, const std::uint8_t classifier_mode)
+void Client::setMode(const EmgMode emg_mode, const ImuMode imu_mode, const ClassifierMode classifier_mode)
 {
-    command<myohw_command_set_mode_t>(myohw_command_set_mode, emg_mode, imu_mode, classifier_mode);
+    command<CommandSetMode>(Command::SetMode,
+                              static_cast<std::uint8_t>(emg_mode),
+                              static_cast<std::uint8_t>(imu_mode),
+                              static_cast<std::uint8_t>(classifier_mode));
 }
 
-/// MyoClient::setSleepMode
+/// Client::setSleepMode
 /// \param sleep_mode
-void MyoClient::setSleepMode(const std::uint8_t sleep_mode)
+void Client::setSleepMode(const SleepMode sleep_mode)
 {
-    command<myohw_command_set_sleep_mode_t>(myohw_command_set_sleep_mode, sleep_mode);
+    command<CommandSetSleepMode>(Command::SetSleepMode, static_cast<std::uint8_t>(sleep_mode));
 }
 
-/// MyoClient::deviceName
+/// Client::deviceName
 /// \return
-std::string MyoClient::deviceName()
+std::string Client::deviceName()
 {
     auto buf = client.readAttribute(DeviceName);
     return std::string{std::begin(buf), std::end(buf)};
 }
 
-/// MyoClient::onEmg
+/// Client::onEmg
 /// \param callback
-void MyoClient::onEmg(const std::function<void(EmgSample)> &callback)
+void Client::onEmg(const std::function<void(EmgSample)> &callback)
 {
     emg_callback = callback;
 }
 
-/// MyoClient::onImu
+/// Client::onImu
 /// \param callback
-void MyoClient::onImu(const std::function<void(OrientationSample, AccelerometerSample, GyroscopeSample)> &callback)
+void Client::onImu(const std::function<void(OrientationSample, AccelerometerSample, GyroscopeSample)> &callback)
 {
     imu_callback = callback;
 }
 
 /// Wait for the value event and call the appropriate callback.
-void MyoClient::listen()
+void Client::listen()
 {
     client.listen([this](const std::uint16_t handle, const Buffer payload)
     {
@@ -222,4 +226,5 @@ void MyoClient::listen()
     });
 }
 
+}
 }

@@ -10,29 +10,15 @@
 #define ARRAY_SIZEOF(array) (sizeof(array) / sizeof(array[0]))
 
 namespace MYOLINUX_NAMESPACE {
+namespace gatt {
 
-void print_address(const GattClient::Address &address)
-{
-    std::ios state(nullptr);
-    state.copyfmt(std::cout);
-
-    for (std::size_t i = address.size(); i-- != 0; ) {
-        std::cout << std::hex << std::setw(2) << static_cast<int>(address[i]);
-        if (i != 0) {
-            std::cout << ":";
-        }
-    }
-    std::cout << std::endl;
-    std::cout.copyfmt(state);
-}
-
-GattClient::GattClient(const Bled112Client &client)
+Client::Client(const bled112::Client &client)
     : client(client)
 { }
 
-/// GattClient::discover
+/// Client::discover
 /// \param callback
-void GattClient::discover(std::function<bool(std::int8_t, Address, Buffer)> callback)
+void Client::discover(std::function<bool(std::int8_t, Address, Buffer)> callback)
 {
     client.write(GapDiscover{GapDiscoverModeEnum::DiscoverGeneric});
 
@@ -58,9 +44,9 @@ void GattClient::discover(std::function<bool(std::int8_t, Address, Buffer)> call
     (void)client.read<GapEndProcedureResponse>();
 }
 
-/// GattClient::connect
+/// Client::connect
 /// \param address
-void GattClient::connect(const Address &address)
+void Client::connect(const Address &address)
 {
     // Check if the connection already exists
     // Reviving the connection is only possible if no data has been sent i.e. setMode has not yet been called, otherwise
@@ -91,7 +77,7 @@ void GattClient::connect(const Address &address)
     address_ = address;
 }
 
-void GattClient::connect(const std::string &str)
+void Client::connect(const std::string &str)
 {
     std::istringstream ss(str);
     Address address;
@@ -112,12 +98,12 @@ void GattClient::connect(const std::string &str)
     connect(address);
 }
 
-bool GattClient::connected()
+bool Client::connected()
 {
     return connected_;
 }
 
-auto GattClient::address() -> Address
+auto Client::address() -> Address
 {
     if (!connected_) {
         throw std::logic_error("Connection is not established, no address available.");
@@ -126,7 +112,7 @@ auto GattClient::address() -> Address
     return address_;
 }
 
-void GattClient::disconnect(const std::uint8_t connection)
+void Client::disconnect(const std::uint8_t connection)
 {
     client.write(ConnectionDisconnect{connection});
     (void)readResponse<ConnectionDisconnectResponse>();
@@ -137,26 +123,26 @@ void GattClient::disconnect(const std::uint8_t connection)
     }
 }
 
-void GattClient::disconnect()
+void Client::disconnect()
 {
     disconnect(connection);
 }
 
-void GattClient::disconnectAll()
+void Client::disconnectAll()
 {
     for (std::uint8_t i = 0; i < 3; i++) { // The dongle supports 3 connections
         disconnect(i);
     }
 }
 
-void GattClient::writeAttribute(const std::uint16_t handle, const Buffer &payload)
+void Client::writeAttribute(const std::uint16_t handle, const Buffer &payload)
 {
     client.write(AttclientAttributeWrite<0>{connection, handle, static_cast<std::uint8_t>(payload.size())}, payload);
     (void)readResponse<AttclientAttributeWriteResponse>();
     (void)readResponse<AttclientProcedureCompletedEvent>();
 }
 
-Buffer GattClient::readAttribute(const std::uint16_t handle)
+Buffer Client::readAttribute(const std::uint16_t handle)
 {
     client.write(AttclientReadByHandle{connection, handle});
     (void)readResponse<AttclientReadByHandleResponse>();
@@ -176,7 +162,7 @@ retry:
     return data;
 }
 
-void GattClient::listen(const std::function<void(std::uint16_t, Buffer)> &callback)
+void Client::listen(const std::function<void(std::uint16_t, Buffer)> &callback)
 {
     // The events get ofloaded to the queue when reading the read or write request response,
     // because the stream might have contained the events unrelated to the request.
@@ -196,7 +182,7 @@ void GattClient::listen(const std::function<void(std::uint16_t, Buffer)> &callba
     client.read(value_event, disconnected_event);
 }
 
-auto GattClient::characteristics() -> Characteristics
+auto Client::characteristics() -> Characteristics
 {
     Characteristics chr;
 
@@ -223,6 +209,23 @@ auto GattClient::characteristics() -> Characteristics
     }
 
     return chr;
+}
+
+}
+
+void print_address(const gatt::Address &address)
+{
+    std::ios state(nullptr);
+    state.copyfmt(std::cout);
+
+    for (std::size_t i = address.size(); i-- != 0; ) {
+        std::cout << std::hex << std::setw(2) << static_cast<int>(address[i]);
+        if (i != 0) {
+            std::cout << ":";
+        }
+    }
+    std::cout << std::endl;
+    std::cout.copyfmt(state);
 }
 
 }

@@ -9,10 +9,10 @@ set(HEADERS
     src/buffer.h
     src/serial.h
     src/bleapi.h
-    src/myohw.h
     src/bled112client.h
     src/gattclient.h
     src/myoclient.h
+    src/myoapi.h
     src/firstargument.h
     src/myolinux.h)
 

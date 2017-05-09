@@ -17,17 +17,18 @@
 #include <map>
 
 namespace MYOLINUX_NAMESPACE {
+namespace gatt {
 
-/// The GattClient class
-class GattClient {
+using Address = std::array<std::uint8_t, 6>; // Address byte sequence is in network order (probably reversed).
+using Characteristics = std::map<Buffer, std::uint16_t>;
+
+class DisconnectedException : public std::exception
+{ };
+
+/// The gatt::Client class
+class Client {
 public:
-    using Address = std::array<std::uint8_t, 6>; // Address byte sequence is in network order (probably reversed).
-    using Characteristics = std::map<Buffer, std::uint16_t>;
-
-    class DisconnectedException : public std::exception
-    { };
-
-    GattClient(const Bled112Client &);
+    Client(const bled112::Client &);
 
     void discover(std::function<bool(std::int8_t, Address, Buffer)>);
     Characteristics characteristics();
@@ -50,7 +51,7 @@ private:
     template <typename T>
     T readResponse();
 
-    Bled112Client client;
+    bled112::Client client;
     bool connected_ = false;
     Address address_;
     std::uint8_t connection;
@@ -62,7 +63,7 @@ private:
 // method, all other are dropped.
 
 template <typename T>
-T GattClient::readResponse()
+T Client::readResponse()
 {
     T response;
 
@@ -86,8 +87,10 @@ T GattClient::readResponse()
     return response;
 }
 
-void print_address(const GattClient::Address &);
+}
+
+void print_address(const gatt::Address &);
 
 }
 
-#endif // MYOLINUX_GATTCLIENT_H
+#endif // MYOLINUX_Client_H

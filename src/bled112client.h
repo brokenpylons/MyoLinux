@@ -2,6 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+#pragma once
 #ifndef MYOLINUX_BLED112CLIENT_H
 #define MYOLINUX_BLED112CLIENT_H
 
@@ -15,11 +16,12 @@
 #include <iostream>
 
 namespace MYOLINUX_NAMESPACE {
+namespace bled112 {
 
-/// The Bled112Client class
-class Bled112Client {
+/// The bled112::Client class
+class Client {
 public:
-    Bled112Client(const Serial &socket)
+    Client(const Serial &socket)
         : socket(socket)
     { }
 
@@ -70,27 +72,27 @@ private:
 };
 
 template <typename T>
-void Bled112Client::write(const T &payload)
+void Client::write(const T &payload)
 {
     socket.write(pack(getHeader<T>()));
     socket.write(pack(payload));
 }
 
 template <typename T>
-void Bled112Client::write(const T &payload, const Buffer &leftover)
+void Client::write(const T &payload, const Buffer &leftover)
 {
     socket.write(pack(getHeader<T>(leftover.size())));
     socket.write(pack(payload));
     socket.write(leftover);
 }
 
-inline Header Bled112Client::readHeader()
+inline Header Client::readHeader()
 {
     return unpack<Header>(socket.read(sizeof(Header)));
 }
 
 template <typename T>
-void Bled112Client::checkHeader(const Header &header)
+void Client::checkHeader(const Header &header)
 {
     if (header.cls != T::cls) {
         throw std::runtime_error("Class index does not match the expected value.");
@@ -104,13 +106,13 @@ void Bled112Client::checkHeader(const Header &header)
 }
 
 template <typename T>
-T Bled112Client::readPayload(const Header &header)
+T Client::readPayload(const Header &header)
 {
     return unpack<T>(socket.read(header.length()));
 }
 
 template <typename T>
-T Bled112Client::readPayload(const Header &header, Buffer &leftover)
+T Client::readPayload(const Header &header, Buffer &leftover)
 {
     const auto payload = unpack<T>(socket.read(sizeof(T)));
     leftover = socket.read(header.length() - sizeof(T));
@@ -118,7 +120,7 @@ T Bled112Client::readPayload(const Header &header, Buffer &leftover)
 }
 
 template <typename T>
-T Bled112Client::read()
+T Client::read()
 {
     const auto header = readHeader();
     checkHeader<T>(header);
@@ -126,18 +128,18 @@ T Bled112Client::read()
 }
 
 template <typename T>
-T Bled112Client::read(Buffer &leftover)
+T Client::read(Buffer &leftover)
 {
     const auto header = readHeader();
     checkHeader<T>(header);
     return readPayload<T>(header, leftover);
 }
 
-inline void Bled112Client::dispatch(const Header &h)
+inline void Client::dispatch(const Header &)
 { }
 
 template <typename Function, typename... Functions>
-auto Bled112Client::dispatch(const Header &header, const Function &function, const Functions&... functions)
+auto Client::dispatch(const Header &header, const Function &function, const Functions&... functions)
     -> typename DisableIfFirstArgumentIsPartial<Function>::type
 {
     using T = typename FirstArgument<Function>::type;
@@ -150,7 +152,7 @@ auto Bled112Client::dispatch(const Header &header, const Function &function, con
 }
 
 template <typename Function, typename... Functions>
-auto Bled112Client::dispatch(const Header &header, const Function &function, const Functions&... functions)
+auto Client::dispatch(const Header &header, const Function &function, const Functions&... functions)
     -> typename EnableIfFirstArgumentIsPartial<Function>::type
 {
     using T = typename FirstArgument<Function>::type;
@@ -173,12 +175,13 @@ auto Bled112Client::dispatch(const Header &header, const Function &function, con
 // void(Type, Buffer)
 
 template <typename... Functions>
-void Bled112Client::read(const Functions&... functions)
+void Client::read(const Functions&... functions)
 {
     const auto header = readHeader();
     dispatch(header, functions...);
 }
 
+}
 }
 
 #endif // MYOLINUX_BLED112CLIENT_H

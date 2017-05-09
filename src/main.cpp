@@ -18,38 +18,38 @@ using namespace myolinux;
 #if EXAMPLE == 0
 int main()
 {
-    MyoClient myo(Serial{"/dev/ttyACM0", 115200});
+    myo::Client client(Serial{"/dev/ttyACM0", 115200});
 
     // Autoconnect to the first Myo device
-    myo.connect();
-    if (!myo.connected()) {
+    client.connect();
+    if (!client.connected()) {
         return 1;
     }
 
     // Print device address
-    print_address(myo.address());
+    print_address(client.address());
 
     // Read firmware version
-    auto version = myo.firmwareVersion();
+    auto version = client.firmwareVersion();
     std::cout << version.major << "."
         << version.minor << "."
         << version.patch << "."
         << version.hardware_rev << std::endl;
 
     // Vibrate
-    myo.vibrate(myohw_vibration_medium);
+    client.vibrate(myo::Vibration::Medium);
 
     // Read name
-    auto name = myo.deviceName();
+    auto name = client.deviceName();
     std::cout << name << std::endl;
 
     // Set sleep mode (otherwise the device auto disconnects after a while)
-    myo.setSleepMode(myohw_sleep_mode_never_sleep);
+    client.setSleepMode(myo::SleepMode::NeverSleep);
 
     // Read EMG and IMU
-    myo.setMode(myohw_emg_mode_send_emg, myohw_imu_mode_send_data, myohw_classifier_mode_disabled);
+    client.setMode(myo::EmgMode::SendEmg, myo::ImuMode::SendData, myo::ClassifierMode::Disabled);
 
-    myo.onEmg([](MyoClient::EmgSample sample)
+    client.onEmg([](myo::EmgSample sample)
     {
         for (std::size_t i = 0; i < 8; i++) {
             std::cout << static_cast<int>(sample[i]);
@@ -60,7 +60,7 @@ int main()
         std::cout << std::endl;
     });
 
-    myo.onImu([](MyoClient::OrientationSample ori, MyoClient::AccelerometerSample acc, MyoClient::GyroscopeSample gyr)
+    client.onImu([](myo::OrientationSample ori, myo::AccelerometerSample acc, myo::GyroscopeSample gyr)
     {
         std::cout << ori[0] << ", " << ori[1] << ", " << ori[2] << ", " <<  ori[3] << std::endl;
         std::cout << acc[0] << ", " << acc[1] << ", " << acc[2] << std::endl;
@@ -68,13 +68,13 @@ int main()
     });
 
     for (int i = 0; i < 100; i++) {
-        myo.listen();
+        client.listen();
 
-        auto name = myo.deviceName();
+        auto name = client.deviceName();
         std::cout << name << std::endl;
     }
 
-    myo.disconnect();
+    client.disconnect();
 }
 
 #elif EXAMPLE == 1
@@ -83,38 +83,38 @@ int main()
 
 int main()
 {
-    MyoClient myo(Serial{"/dev/ttyACM0", 115200});
+    myo::Client client(Serial{"/dev/ttyACM0", 115200});
 
     // Autoconnect to the first Myo device
-    myo.connect();
-    if (!myo.connected()) {
+    client.connect();
+    if (!client.connected()) {
         return 1;
     }
 
     // Print device address
-    print_address(myo.address());
+    print_address(client.address());
 
     // Read firmware version
-    auto version = myo.firmwareVersion();
+    auto version = client.firmwareVersion();
     std::cout << version.major << "."
         << version.minor << "."
         << version.patch << "."
         << version.hardware_rev << std::endl;
 
     // Vibrate
-    myo.vibrate(myohw_vibration_medium);
+    client.vibrate(myo::Vibration::Medium);
 
     // Read name
-    auto name = myo.deviceName();
+    auto name = client.deviceName();
     std::cout << name << std::endl;
 
     // Set sleep mode
-    myo.setSleepMode(myohw_sleep_mode_normal);
+    client.setSleepMode(myo::SleepMode::Normal);
 
     // Read EMG and IMU
-    myo.setMode(myohw_emg_mode_send_emg, myohw_imu_mode_send_data, myohw_classifier_mode_disabled);
+    client.setMode(myo::EmgMode::SendEmg, myo::ImuMode::SendData, myo::ClassifierMode::Disabled);
 
-    myo.onEmg([](MyoClient::EmgSample sample)
+    client.onEmg([](myo::EmgSample sample)
     {
         for (std::size_t i = 0; i < 8; i++) {
             std::cout << static_cast<int>(sample[i]);
@@ -125,7 +125,7 @@ int main()
         std::cout << std::endl;
     });
 
-    myo.onImu([](MyoClient::OrientationSample ori, MyoClient::AccelerometerSample acc, MyoClient::GyroscopeSample gyr)
+    client.onImu([](myo::OrientationSample ori, myo::AccelerometerSample acc, myo::GyroscopeSample gyr)
     {
         std::cout << ori[0] << ", " << ori[1] << ", " << ori[2] << ", " <<  ori[3] << std::endl;
         std::cout << acc[0] << ", " << acc[1] << ", " << acc[2] << std::endl;
@@ -134,13 +134,13 @@ int main()
 
     try {
         while (true) {
-            myo.listen();
+            client.listen();
 
-            auto name = myo.deviceName();
+            auto name = client.deviceName();
             std::cout << name << std::endl;
         }
     }
-    catch(MyoClient::DisconnectedException &) {
+    catch(myo::DisconnectedException &) {
         std::cout << "Disconnected" << std::endl;
     }
 }
