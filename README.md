@@ -60,6 +60,14 @@ TODO
 ### Example
 
 ``` cpp
+#include "myolinux/myoclient.h"
+#include "myolinux/serial.h"
+
+#include <cinttypes>
+
+using namespace myolinux;
+
+int main()
 {
     myo::Client client(Serial{"/dev/ttyACM0", 115200});
 
@@ -115,7 +123,7 @@ TODO
     }
 
     client.disconnect();
-
+}
 ```
 
 ## Contributing
