@@ -60,7 +60,7 @@ include(ExternalProject)
 
 ExternalProject_Add(MyoLinux
     GIT_REPOSITORY    https://github.com/brokenpylons/MyoLinux.git
-    CMAKE_ARGS        -DCMAKE_INSTALL_PREFIX=${CMAKE_CURRENT_BINARY_DIR}/myolinux -DCMAKE_BUILD_TYPE=Debug)
+    CMAKE_ARGS        -DCMAKE_INSTALL_PREFIX=${CMAKE_CURRENT_BINARY_DIR}/myolinux)
 
 set(myolinux_INCLUDE_DIR ${CMAKE_CURRENT_BINARY_DIR}/myolinux/include)
 set(myolinux_LIB_DIR ${CMAKE_CURRENT_BINARY_DIR}/myolinux/lib)
