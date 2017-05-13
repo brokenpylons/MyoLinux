@@ -6,6 +6,8 @@
 #ifndef MYOLINUX_FIRST_ARGUMENT_H
 #define MYOLINUX_FIRST_ARGUMENT_H
 
+#include "myolinux.h"
+
 #include <type_traits>
 
 namespace MYOLINUX_NAMESPACE {
