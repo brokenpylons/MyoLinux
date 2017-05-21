@@ -3,6 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 /// \defgroup myoapi
+/// \defgroup internal
 
 #pragma once
 #ifndef MYOAPI_H
@@ -13,13 +14,10 @@
 
 #include <cinttypes>
 
-#define MYO_SERVICE_BASE_UUID { \
-    0x42, 0x48, 0x12, 0x4a,     \
-    0x7f, 0x2c, 0x48, 0x47,     \
-    0xb9, 0xde, 0x04, 0xa9,     \
-    0x00, 0x00, 0x06, 0xd5      \
-}
-
+/// UUID of the info service.
+/// The UUID is used to identify a Myo device when scanning. This string appears at the end
+/// of the vendor specific part of the packet.
+/// \ingroup myoapi
 #define MYO_SERVICE_INFO_UUID { \
     0x42, 0x48, 0x12, 0x4a,     \
     0x7f, 0x2c, 0x48, 0x47,     \
@@ -72,7 +70,7 @@ enum class Vibration {
 };
 
 /// Kinds of commands.
-/// \ingroup myoapi
+/// \ingroup internal
 enum class Command {
     SetMode                = 0x01, ///< Set EMG and IMU modes.
     Vibrate                = 0x03, ///< Vibrate.
@@ -112,14 +110,14 @@ struct PACKED FwVersion
 };
 
 /// Header that every command begins with.
-/// \ingroup myoapi
+/// \ingroup internal
 struct PACKED CommandHeader {
     uint8_t command;        ///< Command to send. See myohw_command_t.
     uint8_t payload_size;   ///< Number of bytes in payload.
 };
 
 /// Command to set EMG and IMU modes.
-/// \ingroup myoapi
+/// \ingroup internal
 struct PACKED CommandSetMode {
     CommandHeader header;          ///< command == myohw_command_set_mode. payload_size = 3.
     uint8_t emg_mode;              ///< EMG sensor mode. See myohw_emg_mode_t.
@@ -128,30 +126,29 @@ struct PACKED CommandSetMode {
 };
 
 /// Vibration command.
-/// \ingroup myoapi
+/// \ingroup internal
 struct PACKED CommandVibrate {
     CommandHeader header;          ///< command == myohw_command_vibrate. payload_size == 1.
     uint8_t type;                  ///< See myohw_vibration_type_t.
 };
 
 /// Sleep modes.
-/// \ingroup myoapi
+/// \ingroup internal
 struct PACKED CommandSetSleepMode {
     CommandHeader header;          ///< command == myohw_command_set_sleep_mode. payload_size == 1.
     uint8_t sleep_mode;            ///< Sleep mode. See myohw_sleep_mode_t.
 };
 
-/// Raw EMG data received in a myohw_att_handle_emg_data_# attribute.
-/// Value layout for myohw_att_handle_emg_data_#.
-/// \ingroup myoapi
-struct PACKED myohw_emg_data_t {
+/// Raw EMG data received form the device
+/// \ingroup internal
+struct PACKED EmgData {
     int8_t sample1[8];       ///< 1st sample of EMG data.
     int8_t sample2[8];       ///< 2nd sample of EMG data.
 };
 
-/// Motion event data received in a myohw_att_handle_motion_event attribute.
-/// \ingroup myoapi
-struct PACKED myohw_imu_data_t {
+/// Motion event data received form the device
+/// \ingroup internal
+struct PACKED ImuData {
     /// Orientation data, represented as a unit quaternion. Values are multiplied by MYOHW_ORIENTATION_SCALE.
     struct PACKED orientation {
         int16_t w, x, y, z;

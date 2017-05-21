@@ -192,7 +192,7 @@ void Client::listen()
                              handle == EmgData1Characteristic ||
                              handle == EmgData2Characteristic ||
                              handle == EmgData3Characteristic)) {
-            const auto data = unpack<myohw_emg_data_t>(payload);
+            const auto data = unpack<EmgData>(payload);
 
             EmgSample sample1;
             std::copy(data.sample1, data.sample1 + ARRAY_SIZEOF(data.sample1), std::begin(sample1));
@@ -203,7 +203,7 @@ void Client::listen()
             emg_callback(std::move(sample2));
         }
         else if (imu_callback && handle == IMUDataCharacteristic) {
-            const auto data = unpack<myohw_imu_data_t>(payload);
+            const auto data = unpack<ImuData>(payload);
 
             OrientationSample orientation_sample;
             orientation_sample[0] = data.orientation.w;
