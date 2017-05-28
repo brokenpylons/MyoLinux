@@ -19,7 +19,7 @@ C++ library for interfacing with the Myo armband on Linux.
   
 ## Documentation
 
-The documentation can be accessed online [here](https://codedocs.xyz/brokenpylons/MyoLinux/index.html) or generated using Doxygen by running:
+The documentation can be accessed online [here](https://codedocs.xyz/brokenpylons/MyoLinux/index.html) (clear the browser cache if it doesn't match the source) or generated using Doxygen by running:
 ```
 doxygen
 ```
