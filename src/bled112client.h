@@ -16,9 +16,11 @@
 #include <iostream>
 
 namespace MYOLINUX_NAMESPACE {
+
+/// Contains the BlueGiga client and auxiliary classes (which are not included, because there are too many of them).
 namespace bled112 {
 
-/// The bled112::Client class
+/// Class for communication using the BlueGiga protocol.
 class Client {
 public:
     Client(const Serial &socket)
@@ -71,6 +73,8 @@ private:
     Serial socket;
 };
 
+/** Write.
+ * \param payload the payload */
 template <typename T>
 void Client::write(const T &payload)
 {
@@ -78,6 +82,9 @@ void Client::write(const T &payload)
     socket.write(pack(payload));
 }
 
+/** Write.
+ * \param payload the payload
+ * \param[in] leftover additional payload */
 template <typename T>
 void Client::write(const T &payload, const Buffer &leftover)
 {
@@ -119,6 +126,8 @@ T Client::readPayload(const Header &header, Buffer &leftover)
     return payload;
 }
 
+/** Read.
+ *  \return the payload */
 template <typename T>
 T Client::read()
 {
@@ -127,6 +136,9 @@ T Client::read()
     return readPayload<T>(header);
 }
 
+/** Read.
+ *  \param[out] leftover additional payload
+ *  \return the payload */
 template <typename T>
 T Client::read(Buffer &leftover)
 {
@@ -167,13 +179,15 @@ auto Client::dispatch(const Header &header, const Function &function, const Func
     dispatch(header, functions...);
 }
 
-// The dispatch works by iterating over a list of functions, the right one is selected based on the first argument.
-// In the case that the data type is partial an additional argument is required to pass the leftover data.
-//
-// Accepted function signatures:
-// void(Type)
-// void(Type, Buffer)
-
+/** Read the payload of unknown type.
+ *  The dispatch works by iterating over a list of functions, the right one is selected based on the first argument.
+ *  In the case that the data type is partial an additional argument is required to pass the leftover data.
+ *
+ *  Accepted function signatures:
+ *  - void(Type)
+ *  - void(Type, Buffer)
+ *
+ *  \param functions callbacks */
 template <typename... Functions>
 void Client::read(const Functions&... functions)
 {

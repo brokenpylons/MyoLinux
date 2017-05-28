@@ -30,6 +30,12 @@ void error(const std::string &message)
 }
 }
 
+/** Create an object for communication over the serial port.
+ *  In case of permission denied exception try running the program with sudo, if that fixes the problem you are not the
+ *  member of uucp group. Run sudo usermod -a -G uucp <user> to add an user.
+ *  \param device name of the device file
+ *  \param baudrate baudrate for the connection (usually 115200)
+ */
 Serial::Serial(const std::string &device, const int baudrate)
 {
     fd = open(device.data(), O_RDWR | O_NOCTTY); // sudo usermod -a -G uucp <user>
@@ -68,6 +74,7 @@ Serial::Serial(const std::string &device, const int baudrate)
     ioctl(fd, TIOCMBIS, &iflags);
 }
 
+/// Write to serial port.
 Buffer Serial::read(const std::size_t size)
 {
     Buffer buffer(size);
@@ -75,6 +82,7 @@ Buffer Serial::read(const std::size_t size)
     return buffer;
 }
 
+/// Read from serial port.
 std::size_t Serial::write(const Buffer &buffer)
 {
     auto size = ::write(fd, buffer.data(), buffer.size());

@@ -14,7 +14,8 @@
 
 namespace MYOLINUX_NAMESPACE {
 
-/// The Serial class
+/** Class for communication over the serial port.
+ *  \ingroup myolinux */
 class Serial {
 public:
     Serial(const std::string &, const int);

@@ -17,6 +17,8 @@
 #include <map>
 
 namespace MYOLINUX_NAMESPACE {
+
+/// Contains the GATT client and auxiliary classes.
 namespace gatt {
 
 namespace notifications {
@@ -24,13 +26,19 @@ const Buffer enable{0x1, 0x0};
 const Buffer disable{0x0, 0x0};
 }
 
-using Address = std::array<std::uint8_t, 6>; // Address byte sequence is in network order (probably reversed).
+/** Address of the device.
+ *  The address byte sequence  is in network order, so it might be in reverse on your arhitecture. To find the address
+ *  of your device use the Client::discover method or use the bluetoothctl tool. */
+using Address = std::array<std::uint8_t, 6>;
+
+/// A dictionary mapping characteristics UUIDs to handles.
 using Characteristics = std::map<Buffer, std::uint16_t>;
 
+/// Exception thrown when the device disconnects.
 class DisconnectedException : public std::exception
 { };
 
-/// The gatt::Client class
+/// Class for communication using the GATT protocol.
 class Client {
 public:
     Client(const bled112::Client &);
@@ -42,7 +50,6 @@ public:
     bool connected();
     Address address();
 
-    void disconnect(const std::uint8_t);
     void disconnect();
     void disconnectAll();
 
@@ -52,6 +59,8 @@ public:
 
 private:
     using Event = std::pair<std::uint16_t, Buffer>;
+
+    void disconnect(const std::uint8_t);
 
     template <typename T>
     T readResponse();

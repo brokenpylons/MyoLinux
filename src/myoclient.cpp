@@ -28,25 +28,25 @@ void command(gatt::Client client, Args&&... args)
 }
 }
 
-/// Creates an object for communication with a Myo device from a serial socket.
-/// This constructor creates the entire client stack internally. This is the prefered constructor for general use.
-/// \param socket the serial socket for communication
+/** Creates an object for communication with a Myo device from a serial socket.
+ *  This constructor creates the entire client stack internally. This is the prefered constructor for general use.
+ *  \param socket the serial socket for communication */
 Client::Client(const Serial& socket)
     : client(gatt::Client{bled112::Client{socket}})
 { }
 
-/// Creates an object for communication with a Myo device from a gatt::Client instance.
-/// For debugging purposes the gatt::Client instance that has been passed to this constructor may still be used for
-/// issuing raw GATT commands, if the client has been connected beforehand. This limitation exists because a copy of the
-/// instance is stored and the call to the gatt::Client#connect alters the state of the object.
-/// \param client the gatt::Client instance
+/** Creates an object for communication with a Myo device from a gatt::Client instance.
+ *  For debugging purposes the gatt::Client instance that has been passed to this constructor may still be used for
+ *  issuing raw GATT commands, if the client has been connected beforehand. This limitation exists because a copy of the
+ *  instance is stored and the call to the gatt::Client#connect alters the state of the object.
+ *  \param client the gatt::Client instance */
 Client::Client(const gatt::Client &client)
     : client(client)
 { }
 
-/// Discovers the nearby Myo devices.
-/// The functionality is the same as in gatt::Client::discover, except that the non-Myo devices are filtered out.
-/// \param callback
+/** Discovers the nearby Myo devices.
+ *  The functionality is the same as in gatt::Client::discover, except that the non-Myo devices are filtered out.
+ *  \param callback */
 void Client::discover(std::function<bool(std::int8_t, Address, Buffer)> callback)
 {
     client.disconnectAll();
@@ -67,30 +67,31 @@ void Client::enable_notifications()
     }
 }
 
-/// Connect to the device with the specified address.
-/// The address is in network order, so it might be in reverse on your arhitecture. To find the address of your device
-/// use the Client::discover method or use the bluetoothctl tool.
-/// \param address address of the device
+/** \copybrief gatt::Client::connect
+ *
+ *  Reviving the connection is only possible if no data has been sent i.e. setMode has not yet been called, otherwise
+ *  the device will disconnect automatically when the program exits. There will be a short window before the
+ *  disconnect in which the connection cannot be establised. To avoid this always call the disconnect method before
+ *  exiting the program or add sleep(1) before the connect call.
+ *
+ * \copydetails gatt::Client::connect
+ */
 void Client::connect(const Address &address)
 {
     client.connect(address);
     enable_notifications();
 }
 
-/// Connect to the device with the specified address in string form.
-/// The address is represented as six hexadecimal digis separated with colons. This is also the format used by the
-/// bluetoothctl tool.
-/// Example: 01:23:E2:D4:4D:66
-/// \param str string form of the address
+/// \copydoc gatt::Client::connect(const std::string &str)
 void Client::connect(const std::string &str)
 {
     client.connect(str);
     enable_notifications();
 }
 
-/// Auto-connect the client to the first device.
-/// The client scans for devices and connects to the first one it finds. The address of the device that the client
-/// connected to can then be found using the Client::address method.
+/** Auto-connect the client to the first device.
+ *  The client scans for devices and connects to the first one it finds. The address of the device that the client
+ *  connected to can then be found using the Client::address method. */
 void Client::connect()
 {
     discover([this](std::int8_t, Address address, Buffer)
@@ -100,22 +101,19 @@ void Client::connect()
     });
 }
 
-/// Checks whether the client is connected.
-/// \return is the client connected
+/// \copydoc gatt::Client::connected
 bool Client::connected()
 {
     return client.connected();
 }
 
-/// Returns the address of the connected device.
-/// If the client is not connected an exception is thrown.
-/// \return the address of the device
+/// \copydoc gatt::Client::address
 Address Client::address()
 {
     return client.address();
 }
 
-/// Disconnect the client
+/// \copydoc gatt::Client::disconnect
 void Client::disconnect()
 {
     for (const auto &descriptor : event_descriptors) {
@@ -124,31 +122,31 @@ void Client::disconnect()
     client.disconnect();
 }
 
-/// Get the device info.
-/// \return device info
+/** Get the device info.
+ *  \return device info */
 FwInfo Client::info()
 {
     return read<FwInfo>(client, MyoInfoCharacteristic);
 }
 
-/// Get the firmware version.
-/// \return firmware version
+/** Get the firmware version.
+ *  \return firmware version */
 FwVersion Client::firmwareVersion()
 {
     return read<FwVersion>(client, FirmwareVersionCharacteristic);
 }
 
-/// Client::vibrate
-/// \param vibration_type
+/** Vibrate.
+ *  \param vibration_type vibration type */
 void Client::vibrate(const Vibration vibration_type)
 {
     command<CommandVibrate>(client, static_cast<std::uint8_t>(vibration_type));
 }
 
-/// Client::setMode
-/// \param emg_mode
-/// \param imu_mode
-/// \param classifier_mode
+/** Set the EMG and IMU modes.
+ *  \param emg_mode EMG mode
+ *  \param imu_mode IMU mode
+ *  \param classifier_mode classifier mode */
 void Client::setMode(const EmgMode emg_mode, const ImuMode imu_mode, const ClassifierMode classifier_mode)
 {
     command<CommandSetMode>(client,
@@ -157,36 +155,42 @@ void Client::setMode(const EmgMode emg_mode, const ImuMode imu_mode, const Class
                             static_cast<std::uint8_t>(classifier_mode));
 }
 
-/// Client::setSleepMode
-/// \param sleep_mode
+/** Set the sleep mode.
+ *  \param sleep_mode sleep mode
+ *  \sa DisconnectedException */
 void Client::setSleepMode(const SleepMode sleep_mode)
 {
     command<CommandSetSleepMode>(client, static_cast<std::uint8_t>(sleep_mode));
 }
 
-/// Client::deviceName
-/// \return
+/** Read the device name.
+ *  \return device name */
 std::string Client::deviceName()
 {
     auto buf = client.readAttribute(DeviceName);
     return std::string{std::begin(buf), std::end(buf)};
 }
 
-/// Client::onEmg
-/// \param callback
+/** Set the callback for the EMG value event.
+ *  The events are sent at 200 Hz.
+ *  \param callback */
 void Client::onEmg(const std::function<void(EmgSample)> &callback)
 {
     emg_callback = callback;
 }
 
-/// Client::onImu
-/// \param callback
+/** Set the callback for the IMU value event.
+ *  The events are sent at 50 Hz.
+ *  The values are provided as received from the device. To obtain the actual values they must be scaled by the
+ *  appropriate scaling factor, see \ref OrientationSample, \ref AccelerometerSample, \ref GyroscopeSample.
+ *  \param callback */
 void Client::onImu(const std::function<void(OrientationSample, AccelerometerSample, GyroscopeSample)> &callback)
 {
     imu_callback = callback;
 }
 
-/// Wait for the value event and call the appropriate callback.
+/** Wait for the value event and call the appropriate callback.
+ *  \throws myo::DisconnectedException */
 void Client::listen()
 {
     client.listen([this](const std::uint16_t handle, const Buffer payload)

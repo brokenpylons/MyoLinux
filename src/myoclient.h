@@ -2,8 +2,6 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-/// \file myoclient.h
-
 #pragma once
 #ifndef MYOLINUX_MYOCLIENT_H
 #define MYOLINUX_MYOCLIENT_H
@@ -18,29 +16,23 @@
 #include <memory>
 
 namespace MYOLINUX_NAMESPACE {
+
+/** Contains the Myo client and auxiliary classes.
+ * \ingroup myolinux */
 namespace myo {
 
-// The values are provided as received from the device. To obtain the actual values they must be scaled
-// by the appropriate scaling factor defined in "myohw.h".
-
-/// EmgSample
-using EmgSample = std::array<std::int8_t, 8>;
-
-/// OrientationSample
-using OrientationSample = std::array<std::int16_t, 4>;
-
-/// AccelerometerSample
-using AccelerometerSample = std::array<std::int16_t, 3>;
-
-/// GyroscopeSample
-using GyroscopeSample = std::array<std::int16_t, 3>;
-
+/// \copydoc gatt::Address
 using Address = gatt::Address;
+
+/** \copybrief gatt::DisconnectedException
+ *
+ *  This can happen because of inactivity if the myo::SleepMode is set to Normal (set it to NeverSleep to prevent this)
+ *  or because the device is sending value events faster than your program is processing them. In the latter case
+ *  decrease the processing latency or put the myo::Client::listen method in a separate thread. */
 using DisconnectedException = gatt::DisconnectedException;
 
-/// The Client class.
-/// This class depends on a gatt::Client instance for issuing GAP/GATT commands to the device.
-/// \ingroup myolinux
+/** Class for communication with the Myo device.
+ *  This class depends on a gatt::Client instance for issuing GAP/GATT commands to the device. */
 class Client {
 public:
     Client(const Serial &);

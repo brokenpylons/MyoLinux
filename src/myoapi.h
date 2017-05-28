@@ -27,8 +27,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
-/// \defgroup myoapi
-
 #pragma once
 #ifndef MYOAPI_H
 #define MYOAPI_H
@@ -36,16 +34,16 @@
 
 #include "myolinux.h"
 
+#include <array>
 #include <cinttypes>
 #include <vector>
 
 namespace MYOLINUX_NAMESPACE {
 namespace myo {
 
-/// UUID of the info service.
-/// The UUID is used to identify a Myo device when scanning. This string appears at the end
-/// of the vendor specific part of the packet.
-/// \ingroup myoapi
+/** UUID of the info service.
+ *  The UUID is used to identify a Myo device when scanning. This string appears at the end
+ *  of the vendor specific part of the packet. */
 const std::vector<std::uint8_t> MyoUuid = {
     0x42, 0x48, 0x12, 0x4a,
     0x7f, 0x2c, 0x48, 0x47,
@@ -53,8 +51,11 @@ const std::vector<std::uint8_t> MyoUuid = {
     0x01, 0x00, 0x06, 0xd5
 };
 
+constexpr float OrientationScale = 16384.0f;  ///< Orientation data multiplier, see \ref OrientationSample
+constexpr float AccelerometerScale = 2048.0f; ///< Accelerometer data multiplier, see \ref AccelerometerSample
+constexpr float GyroscopeScale = 16.0f;       ///< Gyroscope data multiplier, see \ref GyroscopeSample
+
 /// EMG modes.
-/// \ingroup myoapi
 enum class EmgMode {
     None       = 0x00, ///< Do not send EMG data.
     SendEmg    = 0x02, ///< Send filtered EMG data.
@@ -62,7 +63,6 @@ enum class EmgMode {
 };
 
 /// IMU modes.
-/// \ingroup myoapi
 enum class ImuMode {
     None       = 0x00, ///< Do not send IMU data or events.
     SendData   = 0x01, ///< Send IMU data streams (accelerometer, gyroscope, and orientation).
@@ -72,21 +72,18 @@ enum class ImuMode {
 };
 
 /// Classifier modes.
-/// \ingroup myoapi
 enum class ClassifierMode  {
     Disabled = 0x00, ///< Disable and reset the internal state of the onboard classifier.
     Enabled  = 0x01, ///< Send classifier events (poses and arm events).
 };
 
 /// Sleep modes.
-/// \ingroup myoapi
 enum class SleepMode {
     Normal     = 0, ///< Normal sleep mode; Myo will sleep after a period of inactivity.
     NeverSleep = 1, ///< Never go to sleep.
 };
 
 /// Kinds of vibrations.
-/// \ingroup myoapi
 enum class Vibration {
     None   = 0x00, ///< Do not vibrate.
     Short  = 0x01, ///< Vibrate for a short amount of time.
@@ -94,9 +91,8 @@ enum class Vibration {
     Long   = 0x03, ///< Vibrate for a long amount of time.
 };
 
-/// Various parameters that may affect the behaviour of this Myo armband.
-/// The Myo library reads this attribute when a connection is established.
-/// \ingroup myoapi
+/** Various parameters that may affect the behaviour of this Myo armband.
+ *  The Myo library reads this attribute when a connection is established. */
 struct PACKED FwInfo {
     uint8_t serial_number[6];        ///< Unique serial number of this Myo.
     uint16_t unlock_pose;            ///< Pose that should be interpreted as the unlock pose.
@@ -108,17 +104,33 @@ struct PACKED FwInfo {
     uint8_t reserved[7];             ///< Reserved for future use; populated with zeros.
 };
 
-/// Version information for the Myo firmware.
-/// Value layout for the myohw_att_handle_fw_version attribute.
-/// Minor version is incremented for changes in this interface.
-/// Patch version is incremented for firmware changes that do not introduce changes in this interface.
-/// \ingroup myoapi
+/** Version information for the Myo firmware.
+ *  Value layout for the myohw_att_handle_fw_version attribute.
+ *  Minor version is incremented for changes in this interface.
+ *  Patch version is incremented for firmware changes that do not introduce changes in this interface. */
 struct PACKED FwVersion {
     uint16_t major;
     uint16_t minor;
     uint16_t patch;
     uint16_t hardware_rev; ///< Myo hardware revision. See myohw_hardware_rev_t.
 };
+
+/// EmgSample
+using EmgSample = std::array<std::int8_t, 8>;
+
+/** OrientationSample
+ *  Orientation data, represented as a unit quaternion. Values are multiplied by \ref OrientationScale. */
+using OrientationSample = std::array<std::int16_t, 4>;
+
+/** AccelerometerSample
+ *  Accelerometer data. In units of g. Range of + -16.
+ *  Values are multiplied by \ref AccelerometerScale. */
+using AccelerometerSample = std::array<std::int16_t, 3>;
+
+/** GyroscopeSample
+ *  Gyroscope data. In units of deg/s. Range of + -2000.
+ *  Values are multiplied by \ref GyroscopeScale. */
+using GyroscopeSample = std::array<std::int16_t, 3>;
 
 }
 }

@@ -10,16 +10,23 @@
 #include <sstream>
 
 namespace MYOLINUX_NAMESPACE {
-namespace gatt {
 
 using namespace bled112;
 
+namespace gatt {
+
+/** Creates from an instance of lower level protocol client.
+ *  \param client instance of the bled112::Client */
 Client::Client(const bled112::Client &client)
     : client(client)
 { }
 
-/// Client::discover
-/// \param callback
+/** Discover the devices supporting the GATT protocol.
+ *  The callback is called for each found device. As long as it returns true the scanning continues, otherwise the
+ *  function returns.
+ *
+ *  \param callback the callback called for each device, the parameters are: RSSI, the address and the device specific
+ *                  data included in the advertisment. */
 void Client::discover(std::function<bool(std::int8_t, Address, Buffer)> callback)
 {
     client.write(GapDiscover{GapDiscoverModeEnum::DiscoverGeneric});
@@ -46,15 +53,11 @@ void Client::discover(std::function<bool(std::int8_t, Address, Buffer)> callback
     (void)client.read<GapEndProcedureResponse>();
 }
 
-/// Client::connect
-/// \param address
+/** Connect to the device with the specified address.
+ *  \param address address of the device */
 void Client::connect(const Address &address)
 {
     // Check if the connection already exists
-    // Reviving the connection is only possible if no data has been sent i.e. setMode has not yet been called, otherwise
-    // the device will disconnect automatically when the program exits. There will be a short window before the
-    // disconnect in which the connection cannot be establised. To avoid this always call the disconnect method before
-    // exiting the program or add sleep(1) before the connect call.
     for (std::uint8_t i = 0; i < 3; i++) { // The dongle supports 3 connections
         client.write(ConnectionGetStatus{i});
         (void)readResponse<ConnectionGetStatusResponse>();
@@ -79,6 +82,12 @@ void Client::connect(const Address &address)
     address_ = address;
 }
 
+/** Connect to the device with the specified address in string form.
+ *  The address is represented as six hexadecimal digis separated with colons. This is also the format used by the
+ *  bluetoothctl tool.
+ *
+ *  Example: 01:23:E2:D4:4D:66
+ *  \param str string form of the address */
 void Client::connect(const std::string &str)
 {
     std::istringstream ss(str);
@@ -100,11 +109,16 @@ void Client::connect(const std::string &str)
     connect(address);
 }
 
+/** Checks whether the client is connected.
+ *  \return is the client connected */
 bool Client::connected()
 {
     return connected_;
 }
 
+/** Returns the address of the connected device.
+ *  If the client is not connected an exception is thrown.
+ *  \return the address of the device */
 auto Client::address() -> Address
 {
     if (!connected_) {
@@ -125,11 +139,14 @@ void Client::disconnect(const std::uint8_t connection)
     }
 }
 
+/// Disconnect the client.
 void Client::disconnect()
 {
     disconnect(connection);
 }
 
+/** Disconnect all devices connected to the dongle.
+ *  The supplied dongle supports only three. */
 void Client::disconnectAll()
 {
     for (std::uint8_t i = 0; i < 3; i++) { // The dongle supports 3 connections
@@ -137,6 +154,9 @@ void Client::disconnectAll()
     }
 }
 
+/** Write GATT attribute.
+ *  \param handle handle of the attribute
+ *  \param payload payload to send */
 void Client::writeAttribute(const std::uint16_t handle, const Buffer &payload)
 {
     client.write(AttclientAttributeWrite<0>{connection, handle, static_cast<std::uint8_t>(payload.size())}, payload);
@@ -144,6 +164,9 @@ void Client::writeAttribute(const std::uint16_t handle, const Buffer &payload)
     (void)readResponse<AttclientProcedureCompletedEvent>();
 }
 
+/** Read GATT attribute.
+ *  \param handle handle of the attribute
+ *  \return the recieved payload */
 Buffer Client::readAttribute(const std::uint16_t handle)
 {
     client.write(AttclientReadByHandle{connection, handle});
@@ -164,6 +187,9 @@ retry:
     return data;
 }
 
+/** Listen to GATT notifications
+ *  \param callback callback to call when an notification arrives
+ *  \throws DisconnectedException */
 void Client::listen(const std::function<void(std::uint16_t, Buffer)> &callback)
 {
     // The events get ofloaded to the queue when reading the read or write request response,
@@ -184,6 +210,9 @@ void Client::listen(const std::function<void(std::uint16_t, Buffer)> &callback)
     client.read(value_event, disconnected_event);
 }
 
+/** Discover the characteristics of the device.
+ *  \return a dictionary of characteristics
+ *  \sa Characteristics */
 auto Client::characteristics() -> Characteristics
 {
     Characteristics chr;
