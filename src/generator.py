@@ -48,10 +48,11 @@ def generate_file_header(f):
     f.write('#include "myolinux.h"\n\n')
     f.write('#include <cinttypes>\n\n')
     f.write('namespace MYOLINUX_NAMESPACE {\n')
+    f.write('namespace bled112 {\n')
 
 
 def generate_file_footer(f):
-    f.write('}\n\n')
+    f.write('}\n}\n\n')
     f.write('#undef PACKED\n')
     f.write('#endif // MYOLINUX_BLEAPI_H')
 

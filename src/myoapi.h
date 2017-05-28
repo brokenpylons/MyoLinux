@@ -2,8 +2,32 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+/* Copyright (c) 2015, Thalmic Labs Inc.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the copyright holder(s) nor the
+ *       names of its contributors may be used to endorse or promote products
+ *       derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER(S) BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
+
 /// \defgroup myoapi
-/// \defgroup internal
 
 #pragma once
 #ifndef MYOAPI_H
@@ -13,20 +37,21 @@
 #include "myolinux.h"
 
 #include <cinttypes>
+#include <vector>
+
+namespace MYOLINUX_NAMESPACE {
+namespace myo {
 
 /// UUID of the info service.
 /// The UUID is used to identify a Myo device when scanning. This string appears at the end
 /// of the vendor specific part of the packet.
 /// \ingroup myoapi
-#define MYO_SERVICE_INFO_UUID { \
-    0x42, 0x48, 0x12, 0x4a,     \
-    0x7f, 0x2c, 0x48, 0x47,     \
-    0xb9, 0xde, 0x04, 0xa9,     \
-    0x01, 0x00, 0x06, 0xd5      \
-}
-
-namespace MYOLINUX_NAMESPACE {
-namespace myo {
+const std::vector<std::uint8_t> MyoUuid = {
+    0x42, 0x48, 0x12, 0x4a,
+    0x7f, 0x2c, 0x48, 0x47,
+    0xb9, 0xde, 0x04, 0xa9,
+    0x01, 0x00, 0x06, 0xd5
+};
 
 /// EMG modes.
 /// \ingroup myoapi
@@ -69,23 +94,10 @@ enum class Vibration {
     Long   = 0x03, ///< Vibrate for a long amount of time.
 };
 
-/// Kinds of commands.
-/// \ingroup internal
-enum class Command {
-    SetMode                = 0x01, ///< Set EMG and IMU modes.
-    Vibrate                = 0x03, ///< Vibrate.
-    DeepSleep              = 0x04, ///< Put Myo into deep sleep.
-    Vibrate2               = 0x07, ///< Extended vibrate.
-    SetSleepMode           = 0x09, ///< Set sleep mode.
-    Unlock                 = 0x0a, ///< Unlock Myo.
-    UserAction             = 0x0b, ///< Notify user that an action has been recognized / confirmed.
-};
-
 /// Various parameters that may affect the behaviour of this Myo armband.
 /// The Myo library reads this attribute when a connection is established.
 /// \ingroup myoapi
-struct PACKED FwInfo
-{
+struct PACKED FwInfo {
     uint8_t serial_number[6];        ///< Unique serial number of this Myo.
     uint16_t unlock_pose;            ///< Pose that should be interpreted as the unlock pose.
     uint8_t active_classifier_type;  ///< Whether Myo is currently using a built-in or a custom classifier.
@@ -101,63 +113,11 @@ struct PACKED FwInfo
 /// Minor version is incremented for changes in this interface.
 /// Patch version is incremented for firmware changes that do not introduce changes in this interface.
 /// \ingroup myoapi
-struct PACKED FwVersion
-{
+struct PACKED FwVersion {
     uint16_t major;
     uint16_t minor;
     uint16_t patch;
     uint16_t hardware_rev; ///< Myo hardware revision. See myohw_hardware_rev_t.
-};
-
-/// Header that every command begins with.
-/// \ingroup internal
-struct PACKED CommandHeader {
-    uint8_t command;        ///< Command to send. See myohw_command_t.
-    uint8_t payload_size;   ///< Number of bytes in payload.
-};
-
-/// Command to set EMG and IMU modes.
-/// \ingroup internal
-struct PACKED CommandSetMode {
-    CommandHeader header;          ///< command == myohw_command_set_mode. payload_size = 3.
-    uint8_t emg_mode;              ///< EMG sensor mode. See myohw_emg_mode_t.
-    uint8_t imu_mode;              ///< IMU mode. See myohw_imu_mode_t.
-    uint8_t classifier_mode;       ///< Classifier mode. See myohw_classifier_mode_t.
-};
-
-/// Vibration command.
-/// \ingroup internal
-struct PACKED CommandVibrate {
-    CommandHeader header;          ///< command == myohw_command_vibrate. payload_size == 1.
-    uint8_t type;                  ///< See myohw_vibration_type_t.
-};
-
-/// Sleep modes.
-/// \ingroup internal
-struct PACKED CommandSetSleepMode {
-    CommandHeader header;          ///< command == myohw_command_set_sleep_mode. payload_size == 1.
-    uint8_t sleep_mode;            ///< Sleep mode. See myohw_sleep_mode_t.
-};
-
-/// Raw EMG data received form the device
-/// \ingroup internal
-struct PACKED EmgData {
-    int8_t sample1[8];       ///< 1st sample of EMG data.
-    int8_t sample2[8];       ///< 2nd sample of EMG data.
-};
-
-/// Motion event data received form the device
-/// \ingroup internal
-struct PACKED ImuData {
-    /// Orientation data, represented as a unit quaternion. Values are multiplied by MYOHW_ORIENTATION_SCALE.
-    struct PACKED orientation {
-        int16_t w, x, y, z;
-    } orientation;
-
-    int16_t accelerometer[3]; ///< Accelerometer data. In units of g. Range of + -16.
-                              ///< Values are multiplied by MYOHW_ACCELEROMETER_SCALE.
-    int16_t gyroscope[3];     ///< Gyroscope data. In units of deg/s. Range of + -2000.
-                              ///< Values are multiplied by MYOHW_GYROSCOPE_SCALE.
 };
 
 }

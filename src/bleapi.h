@@ -15,6 +15,7 @@
 #include <cinttypes>
 
 namespace MYOLINUX_NAMESPACE {
+namespace bled112 {
 
 struct PACKED Header {
     std::uint8_t length1 : 3;
@@ -1786,6 +1787,7 @@ struct PACKED TestDebugResponse<0> {
     std::uint8_t length;
 };
 
+}
 }
 
 #undef PACKED

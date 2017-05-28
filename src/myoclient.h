@@ -68,66 +68,12 @@ public:
     void listen();
 
 private:
-    // It was easier to hardcode the handle values. This list must be updated if the Myo interface changes in the future.
-    // The descriptors don't seem to have a unique UUID, they however have a distinct handle which can be determined
-    // using the bluetoothctl tool. The descriptors are listed under the appropriate characteristics.
-    enum {
-        //ControlService
-        MyoInfoCharacteristic         = 0x0,
-        FirmwareVersionCharacteristic = 0x17,
-        CommandCharacteristic         = 0x19,
-
-        //ImuDataService
-        IMUDataCharacteristic         = 0x1c,
-        IMUDataDescriptor             = 0x1d,
-        //MotionEventCharacteristic   = 0x0,
-
-        //ClssifierService
-        //ClassifierEventCharacteristic = 0x0,
-
-        //EmgDataService
-        EmgData0Characteristic        = 0x2b,
-        EmgData1Characteristic        = 0x2e,
-        EmgData2Characteristic        = 0x31,
-        EmgData3Characteristic        = 0x34,
-        EmgData0Descriptor            = 0x2c,
-        EmgData1Descriptor            = 0x2f,
-        EmgData2Descriptor            = 0x32,
-        EmgData3Descriptor            = 0x35,
-
-        //BatteryService
-        //BatteryLevelCharacteristic  = 0x0,
-
-        DeviceName                    = 0x3,
-    };
-
-    /// \cond private
-    template <typename Type>
-    Type read(const std::uint16_t);
-
-    template <typename CommandType,  typename... Args>
-    void command(const Command, Args&&...);
-    /// \endcond
-
     void enable_notifications();
 
     gatt::Client client;
     std::function<void(EmgSample)> emg_callback;
     std::function<void(OrientationSample, AccelerometerSample, GyroscopeSample)> imu_callback;
 };
-
-template <typename T>
-T Client::read(const std::uint16_t handle)
-{
-    return unpack<T>(client.readAttribute(handle));
-}
-
-template <typename CommandType,  typename... Args>
-void Client::command(const Command command, Args&&... args)
-{
-    CommandHeader header{static_cast<std::uint8_t>(command), sizeof...(args)};
-    client.writeAttribute(CommandCharacteristic, pack(CommandType{std::move(header), std::forward<Args>(args)...}));
-}
 
 }
 }

@@ -2,23 +2,30 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+#define ARRAY_SIZEOF(array) (sizeof(array) / sizeof(array[0]))
+
 #include "myoclient.h"
 #include "bled112client.h"
+#include "myoapi_p.h"
 
 #include <utility>
-
-#define ARRAY_SIZEOF(array) (sizeof(array) / sizeof(array[0]))
 
 namespace MYOLINUX_NAMESPACE {
 namespace myo {
 
-namespace notifications {
-const Buffer on{0x1, 0x0};
-const Buffer off{0x0, 0x0};
+namespace {
+template <typename T>
+T read(gatt::Client client, const std::uint16_t handle)
+{
+    return unpack<T>(client.readAttribute(handle));
 }
 
-namespace {
-const std::vector<std::uint8_t> myo_uuid = MYO_SERVICE_INFO_UUID;
+template <typename CommandType,  typename... Args>
+void command(gatt::Client client, Args&&... args)
+{
+    CommandHeader header{CommandType::cmd, sizeof...(args)};
+    client.writeAttribute(CommandCharacteristic, pack(CommandType{std::move(header), std::forward<Args>(args)...}));
+}
 }
 
 /// Creates an object for communication with a Myo device from a serial socket.
@@ -45,8 +52,8 @@ void Client::discover(std::function<bool(std::int8_t, Address, Buffer)> callback
     client.disconnectAll();
     client.discover([&callback](std::int8_t rssi, Address address, Buffer data)
     {
-        if (std::equal(std::prev(std::end(data), static_cast<decltype(data)::difference_type>(myo_uuid.size())),
-                       std::end(data), std::begin(myo_uuid))) {
+        if (std::equal(std::prev(std::end(data), static_cast<decltype(data)::difference_type>(MyoUuid.size())),
+                       std::end(data), std::begin(MyoUuid))) {
             return callback(rssi, std::move(address), std::move(data));
         }
         return true;
@@ -55,11 +62,9 @@ void Client::discover(std::function<bool(std::int8_t, Address, Buffer)> callback
 
 void Client::enable_notifications()
 {
-    client.writeAttribute(EmgData0Descriptor, notifications::on);
-    client.writeAttribute(EmgData1Descriptor, notifications::on);
-    client.writeAttribute(EmgData2Descriptor, notifications::on);
-    client.writeAttribute(EmgData3Descriptor, notifications::on);
-    client.writeAttribute(IMUDataDescriptor, notifications::on);
+    for (const auto &descriptor : event_descriptors) {
+         client.writeAttribute(descriptor, gatt::notifications::enable);
+    }
 }
 
 /// Connect to the device with the specified address.
@@ -113,11 +118,9 @@ Address Client::address()
 /// Disconnect the client
 void Client::disconnect()
 {
-    client.writeAttribute(EmgData0Descriptor, notifications::off);
-    client.writeAttribute(EmgData1Descriptor, notifications::off);
-    client.writeAttribute(EmgData2Descriptor, notifications::off);
-    client.writeAttribute(EmgData3Descriptor, notifications::off);
-    client.writeAttribute(IMUDataDescriptor, notifications::off);
+    for (const auto &descriptor : event_descriptors) {
+         client.writeAttribute(descriptor, gatt::notifications::disable);
+    }
     client.disconnect();
 }
 
@@ -125,21 +128,21 @@ void Client::disconnect()
 /// \return device info
 FwInfo Client::info()
 {
-    return read<FwInfo>(MyoInfoCharacteristic);
+    return read<FwInfo>(client, MyoInfoCharacteristic);
 }
 
 /// Get the firmware version.
 /// \return firmware version
 FwVersion Client::firmwareVersion()
 {
-    return read<FwVersion>(FirmwareVersionCharacteristic);
+    return read<FwVersion>(client, FirmwareVersionCharacteristic);
 }
 
 /// Client::vibrate
 /// \param vibration_type
 void Client::vibrate(const Vibration vibration_type)
 {
-    command<CommandVibrate>(Command::Vibrate, static_cast<std::uint8_t>(vibration_type));
+    command<CommandVibrate>(client, static_cast<std::uint8_t>(vibration_type));
 }
 
 /// Client::setMode
@@ -148,17 +151,17 @@ void Client::vibrate(const Vibration vibration_type)
 /// \param classifier_mode
 void Client::setMode(const EmgMode emg_mode, const ImuMode imu_mode, const ClassifierMode classifier_mode)
 {
-    command<CommandSetMode>(Command::SetMode,
-                              static_cast<std::uint8_t>(emg_mode),
-                              static_cast<std::uint8_t>(imu_mode),
-                              static_cast<std::uint8_t>(classifier_mode));
+    command<CommandSetMode>(client,
+                            static_cast<std::uint8_t>(emg_mode),
+                            static_cast<std::uint8_t>(imu_mode),
+                            static_cast<std::uint8_t>(classifier_mode));
 }
 
 /// Client::setSleepMode
 /// \param sleep_mode
 void Client::setSleepMode(const SleepMode sleep_mode)
 {
-    command<CommandSetSleepMode>(Command::SetSleepMode, static_cast<std::uint8_t>(sleep_mode));
+    command<CommandSetSleepMode>(client, static_cast<std::uint8_t>(sleep_mode));
 }
 
 /// Client::deviceName

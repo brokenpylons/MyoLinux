@@ -2,15 +2,17 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+#define ARRAY_SIZEOF(array) (sizeof(array) / sizeof(array[0]))
+
 #include "gattclient.h"
 
 #include <functional>
 #include <sstream>
 
-#define ARRAY_SIZEOF(array) (sizeof(array) / sizeof(array[0]))
-
 namespace MYOLINUX_NAMESPACE {
 namespace gatt {
+
+using namespace bled112;
 
 Client::Client(const bled112::Client &client)
     : client(client)
@@ -149,14 +151,14 @@ Buffer Client::readAttribute(const std::uint16_t handle)
 
     Buffer data;
 retry:
-    const auto metadata = client.read<AttclientAttributeValueEvent<0>>(data);
-    if (metadata.atthandle != handle) {
-        const auto handle = metadata.atthandle;
+    const auto event = client.read<AttclientAttributeValueEvent<0>>(data);
+    if (event.atthandle != handle) {
+        const auto handle = event.atthandle;
         event_queue.emplace_back(Event{handle, std::move(data)});
         goto retry;
     }
 
-    if (metadata.length != data.size()) {
+    if (event.length != data.size()) {
         throw std::runtime_error("Data length does not match the expected value.");
     }
     return data;
@@ -209,6 +211,34 @@ auto Client::characteristics() -> Characteristics
     }
 
     return chr;
+}
+
+// Read the response while beeing flooded by the events from the device. The packets are read until the correct one is
+// found. The ones containing the values (e.g. EMG and IMU data) are stored in a queue and then retrived in the listen
+// method, all other are dropped.
+template <typename T>
+T Client::readResponse()
+{
+    T response;
+
+    bool running = true;
+    const auto response_event = [&running, &response](T event)
+    {
+        running = false;
+        response = event;
+    };
+
+    const auto value_event = [this](AttclientAttributeValueEvent<0> event, Buffer data)
+    {
+        const auto handle = event.atthandle;
+        event_queue.emplace_back(Event{handle, std::move(data)});
+    };
+
+    while (running) {
+        client.read(response_event, value_event);
+    }
+
+    return response;
 }
 
 }

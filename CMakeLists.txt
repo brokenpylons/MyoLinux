@@ -16,13 +16,17 @@ set(HEADERS
     src/firstargument.h
     src/myolinux.h)
 
+set(PRIVATE_HEADERS
+    src/myoapi_p.h)
+
 set(SRC
    src/generator.py
    src/bleapi.xml
    src/serial.cpp
    src/gattclient.cpp
    src/myoclient.cpp
-   ${HEADERS})
+   ${HEADERS}
+   ${PRIVATE_HEADERS})
 
 set(EXAMPLE_SRC
     src/main.cpp

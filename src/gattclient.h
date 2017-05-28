@@ -19,6 +19,11 @@
 namespace MYOLINUX_NAMESPACE {
 namespace gatt {
 
+namespace notifications {
+const Buffer enable{0x1, 0x0};
+const Buffer disable{0x0, 0x0};
+}
+
 using Address = std::array<std::uint8_t, 6>; // Address byte sequence is in network order (probably reversed).
 using Characteristics = std::map<Buffer, std::uint16_t>;
 
@@ -58,39 +63,10 @@ private:
     std::vector<Event> event_queue;
 };
 
-// Read the response while beeing flooded by the events from the device. The packets are read until the correct one is
-// found. The ones containing the values (e.g. EMG and IMU data) are stored in a queue and then retrived in the listen
-// method, all other are dropped.
-
-template <typename T>
-T Client::readResponse()
-{
-    T response;
-
-    bool running = true;
-    const auto response_event = [&running, &response](T event)
-    {
-        running = false;
-        response = event;
-    };
-
-    const auto value_event = [this](AttclientAttributeValueEvent<0> event, Buffer data)
-    {
-        const auto handle = event.atthandle;
-        event_queue.emplace_back(Event{handle, std::move(data)});
-    };
-
-    while (running) {
-        client.read(response_event, value_event);
-    }
-
-    return response;
-}
-
 }
 
 void print_address(const gatt::Address &);
 
 }
 
-#endif // MYOLINUX_Client_H
+#endif // MYOLINUX_GATTCLIENT_H
