@@ -42,7 +42,7 @@ set_property(TARGET ${PROJECT_NAME}_example PROPERTY CXX_STANDARD 11)
 target_link_libraries(${PROJECT_NAME}_example ${PROJECT_NAME})
 
 set(CPACK_PACKAGE_NAME "myolinux")
-set(CPACK_PACKAGE_VERSION "1.0.0")
+set(CPACK_PACKAGE_VERSION "1.1.0")
 set(CPACK_PACKAGE_INSTALL_DIRECTORY /usr)
 set(CPACK_PACKAGE_CONTACT "Žiga Leber <brokenpylons@gmail.com>")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "C++ library for interfacing with the Myo armband on Linux.")
