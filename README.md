@@ -26,7 +26,7 @@ doxygen
 
 ## Installation
 
-The binary form of the library can be downloaded [here](https://github.com/brokenpylons/MyoLinux/releases/tag/1.0.0). It is available in deb, rpm and tarball formats for the x86-64 arhitecture. The library can also be installed the old fashioned way by compiling it from source. I will cover two installation methods and provide a minimal example to get you started.
+The binary form of the library can be downloaded [here](https://github.com/brokenpylons/MyoLinux/releases/latest). It is available in deb, rpm and tarball formats for the x86-64 arhitecture. The library can also be installed the old fashioned way by compiling it from source. I will cover two installation methods and provide a minimal example to get you started.
 
 ### Compiling from source
 
@@ -53,7 +53,9 @@ make
 make install
 ```
 
-### CMake external project 
+### CMake external project
+
+Include this into your CMakeLists.txt and add the imported target as a dependency.
 
 ```
 include(ExternalProject)
