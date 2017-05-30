@@ -74,8 +74,7 @@ void Client::enable_notifications()
  *  disconnect in which the connection cannot be establised. To avoid this always call the disconnect method before
  *  exiting the program or add sleep(1) before the connect call.
  *
- * \copydetails gatt::Client::connect
- */
+ * \copydetails gatt::Client::connect */
 void Client::connect(const Address &address)
 {
     client.connect(address);
