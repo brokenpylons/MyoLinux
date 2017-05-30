@@ -18,7 +18,7 @@
 namespace MYOLINUX_NAMESPACE {
 
 /** Contains the Myo client and auxiliary classes.
- * \ingroup myolinux */
+ *  \ingroup myolinux */
 namespace myo {
 
 /// \copydoc gatt::Address
