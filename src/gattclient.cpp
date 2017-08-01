@@ -192,8 +192,8 @@ retry:
  *  \throws DisconnectedException */
 void Client::listen(const std::function<void(std::uint16_t, Buffer)> &callback)
 {
-    // The events get ofloaded to the queue when reading the read or write request response,
-    // because the stream might have contained the events unrelated to the request.
+    // The events may got ofloaded to the queue when reading the read or write request response,
+    // because the stream might have contained events unrelated to the request.
     for (const auto &event : event_queue) {
         callback(std::get<0>(event), std::get<1>(event));
     }
